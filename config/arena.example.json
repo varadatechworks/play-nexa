@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "arenaId": "demo-riverside",
+  "displayName": "Riverside Sports Arena",
+  "tagline": "Your game starts here",
+  "branding": {
+    "primaryColor": "#153a50",
+    "accentColor": "#f2ad48",
+    "logoUrl": null,
+    "heroImageUrl": null,
+    "faviconUrl": null
+  },
+  "contact": {
+    "email": "hello@example.invalid",
+    "phone": "+91 9000000000",
+    "address": "Demo city, Karnataka"
+  },
+  "locale": {
+    "default": "en",
+    "supported": [
+      "en",
+      "kn"
+    ],
+    "timeZone": "Asia/Kolkata",
+    "currency": "INR"
+  },
+  "features": {
+    "booking": true,
+    "memberships": true,
+    "coaching": true,
+    "tournaments": true,
+    "shop": false
+  },
+  "sports": [
+    {
+      "code": "BADMINTON",
+      "name": "Badminton",
+      "courts": 3,
+      "startingPriceInr": 350
+    },
+    {
+      "code": "SWIMMING",
+      "name": "Swimming",
+      "courts": 1,
+      "startingPriceInr": 200
+    },
+    {
+      "code": "CRICKET",
+      "name": "Cricket Turf",
+      "courts": 1,
+      "startingPriceInr": 900
+    }
+  ],
+  "demoMode": true
+}
