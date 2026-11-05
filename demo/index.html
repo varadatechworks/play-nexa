@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>PlayNexa | Arena showcase</title><style>
+:root{font-family:Inter,system-ui,Arial,sans-serif;color:#f4f7fb;background:#081627}*{box-sizing:border-box}body{margin:0}header{padding:20px 5vw;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ffffff25}.brand{font-size:26px;font-weight:900;letter-spacing:-1px}.brand b{color:#efa948}.label{font-size:12px;text-transform:uppercase;letter-spacing:2px;color:#a8bad4}.wrap{max-width:1200px;margin:auto;padding:30px 24px}.hero{background:linear-gradient(115deg,#113e54,#11273f);border:1px solid #ffffff24;border-radius:24px;padding:55px 5vw;min-height:360px}h1{font-size:clamp(36px,6vw,66px);letter-spacing:-2px;margin:18px 0}p{line-height:1.6;color:#ccdbec}.btn{border:0;border-radius:12px;padding:13px 18px;background:#efa948;color:#0c1a27;font-weight:800;cursor:pointer}.muted{background:#16263a;color:#ebf4fe;border:1px solid #ffffff33}.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-bottom:24px}select,input{background:#15243a;color:white;border:1px solid #6e829e;border-radius:9px;padding:10px;min-height:42px}.field{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#bed1e7}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}.card{background:#14283e;border:1px solid #ffffff20;border-radius:15px;padding:23px}.price{font-size:23px;font-weight:900;color:#efa948}.hint{border-left:3px solid #efa948;padding-left:15px;margin:25px 0}footer{padding:25px;text-align:center;color:#9eb2cc}@media(max-width:600px){.hero{padding:30px}.wrap{padding:20px}}
+</style></head><body>
+<header><div class="brand">PLAY<b>NEXA</b></div><div class="label">Varada Techworks · Sales demo</div></header><main class="wrap">
+<section class="controls" aria-label="Demo branding">
+<label class="field">Arena profile<select id="arena"><option value="riverside">Riverside Sports Arena</option><option value="urban">Urban Play Hub</option><option value="summit">Summit Sports Club</option></select></label>
+<label class="field">Arena name<input id="name" maxlength="70" /></label>
+<label class="field">Theme colour<input id="color" type="color" /></label>
+<button class="btn muted" id="reset">Reset demo</button>
+</section>
+<section class="hero"><div class="label" id="eyebrow"></div><h1 id="headline"></h1><p id="tagline"></p><button class="btn" id="book">Explore facilities</button></section>
+<p class="hint">DEMO MODE — Illustrative arenas and prices only. No real reservations or payments will be created.</p>
+<h2 id="facilities-heading">Available facilities</h2><section class="grid" id="facilities"></section>
+</main><footer>PlayNexa • White-label sports arena software • Powered by Varada Techworks</footer>
+<script type="module" src="./main.js"></script></body></html>
