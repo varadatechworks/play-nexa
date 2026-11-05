@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AppProvider } from "@/components/app-provider";
+import { arenaConfig } from "@/lib/arena-config";
 
 export const metadata: Metadata = {
-  title: { default: "Jnapanam Sports Zone | Holalkere", template: "%s | Jnapanam Sports Zone" },
-  description: "Sports, fitness, coaching and community for every age in Holalkere.",
+  title: { default: `${arenaConfig.name} | ${arenaConfig.city}`, template: `%s | ${arenaConfig.name}` },
+  description: `Sports, fitness, coaching and community at ${arenaConfig.name} in ${arenaConfig.city}.`,
   other: {
     "codex-preview": "development",
   },
-  icons: {
-    icon: "/images/jnapanam-logo.png",
-    shortcut: "/images/jnapanam-logo.png",
-  },
+  icons: arenaConfig.logoUrl ? { icon: arenaConfig.logoUrl, shortcut: arenaConfig.logoUrl } : undefined,
 };
 
 export default function RootLayout({
@@ -21,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased"><AppProvider>{children}</AppProvider></body>
+      <body className="antialiased" style={{ "--olive": arenaConfig.primaryColor, "--saffron": arenaConfig.accentColor, "--gold": arenaConfig.accentColor } as React.CSSProperties}><AppProvider>{children}</AppProvider></body>
     </html>
   );
 }
