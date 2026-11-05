@@ -7,6 +7,8 @@
  * Set ARENA_APP_ICON_PATH, ARENA_ANDROID_PACKAGE and ARENA_APP_SCHEME.
  */
 const source = require("./app.json").expo;
+const {existsSync} = require("node:fs");
+const {resolve} = require("node:path");
 
 const name = process.env.ARENA_APP_NAME || "PlayNexa Arena";
 const slug = process.env.ARENA_APP_SLUG || "playnexa-arena";
@@ -19,6 +21,10 @@ if (isRelease && (!process.env.ARENA_ANDROID_PACKAGE ||
     !process.env.ARENA_APP_ICON_PATH || !process.env.ARENA_APP_SCHEME)) {
   throw new Error("Branded release requires unique app package, icon and deep-link scheme");
 }
+if (isRelease && (icon.toLowerCase().includes("jnapanam") ||
+    !icon.startsWith("./assets/") || !existsSync(resolve(__dirname, icon)))) {
+  throw new Error("Branded release requires a valid arena-owned icon under assets");
+}
 if (!/^[a-z][a-z0-9+.-]*$/.test(scheme)) throw new Error("Invalid arena app scheme");
 if (!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/.test(packageId))
   throw new Error("Invalid arena package ID");
@@ -26,6 +32,10 @@ if (!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/.test(packageId))
 module.exports = {
   expo: {
     ...source, name, slug, scheme, icon,
+    plugins: source.plugins?.map(plugin =>
+      Array.isArray(plugin) && plugin[0] === "expo-splash-screen"
+        ? [plugin[0], {...plugin[1], image:icon}]
+        : plugin),
     ios: { ...source.ios, bundleIdentifier: process.env.ARENA_IOS_BUNDLE_ID || packageId, icon },
     android: {
       ...source.android, package: packageId,
