@@ -3,6 +3,8 @@ import { defineConfig } from "vite";
 
 // Standalone PlayNexa build: no OpenAI Sites-specific generated plugin,
 // hosting.json, or placeholder D1/R2 dependency required.
+const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
+
 const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
