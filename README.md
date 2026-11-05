@@ -56,6 +56,14 @@ Tests cover deployment mode setup, brand and domain inputs, published directory 
 
 ### Current limitation
 
-This is a **productisation foundation and sales demo**, **not** a completed Jnapanam source migration. Its pages and JS contracts are not yet wired into the production Jnapanam Spring Boot, web or Android implementation. Dedicated deployments still need a full import/refactor; SaaS additionally requires tenant-aware schema, queries, authentication and isolation tests; the marketplace needs an authoritative booking integration before taking live payments.
+The Jnapanam application source has now been imported into **apps/backend**, **apps/web** and **apps/mobile** from commit `31816d98`. The first branding integration has been added to the Spring Boot public API, the web homepage/header/metadata and the Expo dynamic app configuration. The entire application has **not** been made white-label yet: residual branding, persisted admin configuration, production SaaS tenant isolation, operational provisioning, invoice/notification templates and marketplace booking integration remain incomplete. Do not deploy a new real arena until those requirements and its UAT pass.
+
+Generate matching deployment settings from a local arena draft:
+
+```bash
+npm run arena:env -- config/tenants/victory-sports-arena.json
+```
+
+See [Branding integration](docs/ARENA_BRANDING_OPERATIONS.md), [Source import metadata](SOURCE_IMPORT.md) and [Migration plan](docs/JNAPANAM_PORTING.md).
 
 Do not commit production secrets or copy real customer data into demo profiles.
