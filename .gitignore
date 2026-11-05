@@ -1,0 +1,16 @@
+# secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.keystore
+*.jks
+# local development
+node_modules/
+dist/
+build/
+target/
+.next/
+.vinext/
+coverage/
+.DS_Store
