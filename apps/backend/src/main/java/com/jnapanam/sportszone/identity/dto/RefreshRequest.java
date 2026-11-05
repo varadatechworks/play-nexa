@@ -1,0 +1,1 @@
+package com.jnapanam.sportszone.identity.dto;import jakarta.validation.constraints.NotBlank;public record RefreshRequest(@NotBlank String refreshToken,String deviceSignature){}
