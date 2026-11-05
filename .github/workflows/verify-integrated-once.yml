@@ -1,0 +1,53 @@
+name: One-time integrated import verification
+on:
+  push:
+    branches:
+      - feature/three-mode-arena-onboarding
+    paths:
+      - '.github/workflows/verify-integrated-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  backend-branding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: apps/backend/pom.xml
+      - name: Compile and run isolated branding contract tests
+        run: mvn -q -f apps/backend/pom.xml -Dtest=PublicArenaBrandingControllerTest test
+
+  web-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install frontend packages
+        working-directory: apps/web
+        run: npm ci --no-audit --no-fund
+      - name: Build white-label frontend
+        working-directory: apps/web
+        run: npm run build
+
+  mobile-branding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate optional arena configuration
+        run: |
+          node --check apps/mobile/app.config.js
+          node -e 'const app=require("./apps/mobile/app.config.js"); if(app.expo.android.package!=="com.varadatechworks.playnexa.demo") process.exit(1);'

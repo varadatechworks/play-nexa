@@ -1,0 +1,42 @@
+name: PlayNexa platform contract tests
+on:
+  pull_request:
+    paths:
+      - 'packages/platform-core/**'
+      - 'demo/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'apps/web/**'
+      - '.github/workflows/platform-contracts.yml'
+  workflow_dispatch:
+
+jobs:
+  platform-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+
+  web-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install frontend packages
+        working-directory: apps/web
+        run: npm ci --no-audit --no-fund
+      - name: Build portable white-label frontend
+        working-directory: apps/web
+        run: npm run build

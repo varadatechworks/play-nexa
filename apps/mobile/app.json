@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "Jnapanam Sports Zone",
+    "slug": "jnapanam-sports-zone",
+    "version": "1.1.1",
+    "orientation": "portrait",
+    "icon": "./assets/images/jnapanam-brand.png",
+    "scheme": "jnapanamsportszone",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "icon": "./assets/images/jnapanam-brand.png",
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jnapanam.sportszone"
+    },
+    "android": {
+      "package": "com.jnapanam.sportszone",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/images/jnapanam-brand.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 3
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/jnapanam-brand.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/images/jnapanam-brand.png",
+          "imageWidth": 140
+        }
+      ],
+      "expo-localization",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Jnapanam uses your location with your permission to record where activities occur. You can continue without location.",
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "playnexa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Three-mode sports arena platform productisation starter",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "demo": "node scripts/demo-server.mjs",
+    "arena:new": "node scripts/new-arena.mjs",
+    "arena:env": "node scripts/render-arena-env.mjs"
+  }
+}
