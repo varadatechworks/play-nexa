@@ -1,0 +1,45 @@
+name: One-time import Jnapanam application
+on:
+  push:
+    branches:
+      - feature/three-mode-arena-onboarding
+    paths:
+      - '.github/workflows/import-jnapanam-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  import-source:
+    if: github.repository == 'varadatechworks/play-nexa'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: import-jnapanam-source-once
+      cancel-in-progress: false
+    steps:
+      - name: Check out PlayNexa branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/three-mode-arena-onboarding
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Import maintained source modules (not deployment secrets)
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth=1 --single-branch --branch main https://github.com/bv-prasanna/jnapanam-sports-zone.git /tmp/playnexa-source
+          SOURCE_SHA="$(git -C /tmp/playnexa-source rev-parse HEAD)"
+          echo "Source SHA: $SOURCE_SHA"
+          for module in backend web mobile; do
+            mkdir -p "apps/$module"
+            rsync -a               --exclude='node_modules/'               --exclude='target/'               --exclude='build/'               --exclude='dist/'               --exclude='.next/'               --exclude='.env'               --exclude='.env.*'               --exclude='Module 1 2 and 3 backup/'               --exclude='audit-report.json'               "/tmp/playnexa-source/apps/$module/" "apps/$module/"
+          done
+          printf 'Jnapanam source: bv-prasanna/jnapanam-sports-zone\nRevision: %s\nImport: tracked apps/backend, apps/web and apps/mobile only; no production data or environment secrets.\nNext: refactor branding and add tenant-isolation enforcement before deploy.\n' "$SOURCE_SHA" > SOURCE_IMPORT.md
+          git add apps/backend apps/web apps/mobile SOURCE_IMPORT.md
+          if git diff --cached --quiet; then
+            echo "No source changes to import"
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]'               -c user.email='41898282+github-actions[bot]@users.noreply.github.com'               commit -m "chore: import Jnapanam application baseline into PlayNexa"
+          git push origin HEAD:feature/three-mode-arena-onboarding
