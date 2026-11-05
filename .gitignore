@@ -14,3 +14,6 @@ target/
 .vinext/
 coverage/
 .DS_Store
+
+# Locally generated tenant configuration drafts
+config/tenants/
