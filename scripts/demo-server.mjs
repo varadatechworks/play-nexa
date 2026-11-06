@@ -8,14 +8,14 @@ const port=Number(process.env.PORT||8080);
 const allowed=new Set([
   "/demo/index.html","/demo/main.js","/demo/theme.css",
   "/demo/demo-data.mjs","/demo/marketplace.html","/demo/marketplace.mjs",
-  "/demo/arena.html","/demo/arena.mjs","/demo/onboard.html","/demo/onboard.mjs",
-  "/packages/platform-core/index.mjs"
+  "/demo/arena.html","/demo/arena.mjs","/demo/booking-model.mjs","/demo/onboard.html","/demo/onboard.mjs",
+  "/packages/platform-core/index.mjs","/packages/platform-core/deployment.mjs"
 ]);
 const MIME={".html":"text/html; charset=utf-8",".mjs":"text/javascript; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8"};
 createServer(async(req,res)=>{
   if(req.method!=="GET" && req.method!=="HEAD"){res.writeHead(405,{"Allow":"GET, HEAD"});res.end();return}
   let pathname;try{pathname=decodeURIComponent(new URL(req.url,"http://localhost").pathname)}catch{res.writeHead(400);res.end();return}
-  if(pathname==="/")pathname="/demo/marketplace.html";
+  if(pathname==="/")pathname="/demo/arena.html";
   if(!allowed.has(pathname)){res.writeHead(404);res.end("Not found");return}
   try{
     const data=await readFile(resolve(root,"."+pathname));
