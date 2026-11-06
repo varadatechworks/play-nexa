@@ -1,9 +1,10 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { Href, router, usePathname } from 'expo-router';
 import { useEffect,useState } from 'react';
 import {api} from '@/lib/api';
 import { useTranslation } from 'react-i18next';
-import { Image, Modal, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LanguageSwitch } from '@/components/language-switch';
 import { BrandColors } from '@/constants/brand';
@@ -28,6 +29,8 @@ const shopkeeperItem: MenuItem={href:'/shop-counter',key:'shopCounter',icon:'sto
 
 export function MobileHeader() {
   const {t}=useTranslation();
+  const arenaName=Constants.expoConfig?.name||'PlayNexa Arena';
+  const arenaCity=String(Constants.expoConfig?.extra?.arenaCity||t('common.location'));
   const {user}=useAuth();
   const pathname=usePathname();
   const [open,setOpen]=useState(false);
@@ -57,9 +60,9 @@ export function MobileHeader() {
           <MaterialCommunityIcons name="menu" size={28} color={BrandColors.white}/>
         </Pressable>
         <Pressable onPress={()=>navigate('/')} accessibilityRole="button" accessibilityLabel={t('navigation.home')} style={styles.identity}>
-          <Image source={require('../../assets/images/jnapanam-brand.png')} style={styles.logo} resizeMode="contain"/>
-          <View style={styles.nameWrap}><Text style={styles.brand} numberOfLines={1}>Jnapanam Sports Zone</Text>
-            <Text style={styles.location} numberOfLines={1}>{t('common.location')}</Text></View>
+          <View style={[styles.logo,{alignItems:"center",justifyContent:"center"}]}><MaterialCommunityIcons name="trophy-outline" size={27} color={BrandColors.primary}/></View>
+          <View style={styles.nameWrap}><Text style={styles.brand} numberOfLines={1}>{arenaName}</Text>
+            <Text style={styles.location} numberOfLines={1}>{arenaCity}</Text></View>
         </Pressable>
         <LanguageSwitch compact />
       </View>
