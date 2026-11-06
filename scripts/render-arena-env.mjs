@@ -22,6 +22,7 @@ try{
     "# Dedicated hosting can be enabled now. SaaS mode requires verified domain routing and DB isolation.",
     `PLAYNEXA_HOSTING_MODE=${escaped(arena.hostingMode)}`,
     `ARENA_NAME=${escaped(arena.name)}`,
+    `ARENA_VENUE_CODE=${escaped(arena.slug.toUpperCase().replace(/-/g,"_"))}`,
     `ARENA_SHORT_NAME=${escaped(arena.name.slice(0,25))}`,
     `ARENA_CITY=${escaped(arena.city)}`,
     `ARENA_TAGLINE=${escaped(arena.tagline)}`,

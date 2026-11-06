@@ -7,7 +7,7 @@ import {
 import { getStoredValue, removeStoredValue, setStoredValue } from '@/lib/storage';
 import { getDeviceIdentity } from '@/lib/device-identity';
 
-const CACHED_USER_KEY = 'jnapanam.cachedUser';
+const CACHED_USER_KEY = 'playnexa.cachedUser';
 
 type RegisterInput = { fullName: string; email: string; mobile: string; password: string };
 type AuthValue = {

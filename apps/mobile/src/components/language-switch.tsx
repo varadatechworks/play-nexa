@@ -8,7 +8,7 @@ export function LanguageSwitch({compact=false}:{compact?:boolean}){
   const selected=i18n.resolvedLanguage==='kn'?'kn':'en';
   async function choose(language:'en'|'kn'){
     await i18n.changeLanguage(language);
-    await setStoredValue('jnapanam.language',language);
+    await setStoredValue('playnexa.language',language);
   }
   return <View style={[styles.row,compact&&styles.compact]}>
     {(['en','kn'] as const).map(language=><Pressable key={language} accessibilityRole="button"
