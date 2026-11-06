@@ -1,3 +1,5 @@
+import {DEPLOYMENT_DETAILS, selectDeploymentOption, productEntitlements} from "./deployment.mjs";
+
 /**
  * PlayNexa platform contracts. Zero-dependency ESM for Node and the browser.
  *
@@ -55,8 +57,11 @@ export function buildArenaDraft(input = {}) {
   const name = requireText(input.name, "arena name", 90);
   const slug = input.slug == null || input.slug === "" ? slugify(name) : String(input.slug).trim();
   if (!SLUG.test(slug) || slug.length < 3 || slug.length > 48) throw new Error("Invalid arena slug");
-  const hostingMode = input.hostingMode || "dedicated";
+  const requestedMode = input.deploymentOption;
+  const hostingMode = input.hostingMode ||
+    (requestedMode && DEPLOYMENT_DETAILS[requestedMode]?.hostingMode) || "dedicated";
   if (!HOSTING_MODES.includes(hostingMode)) throw new Error("Invalid hosting mode");
+  const deploymentOption = selectDeploymentOption(requestedMode, hostingMode);
   const city = requireText(input.city, "city", 80);
   const sports = (input.sports || []).map((entry, i) => {
     const label = requireText(typeof entry === "string" ? entry : entry.name, "sport " + i, 70);
@@ -84,9 +89,13 @@ export function buildArenaDraft(input = {}) {
     schemaVersion: 1, id: "arena-" + slug, slug, name,
     tagline: typeof input.tagline === "string" ? input.tagline.trim().slice(0, 150) : "Play • Train • Compete",
     city, state: input.state || "Karnataka", country: input.country || "IN",
-    hostingMode, marketplaceListed: listed, status: "draft", domains, verifiedDomains: [], brand, sports,
+    hostingMode, deploymentOption, marketplaceListed: listed, status: "draft", domains, verifiedDomains: [], brand, sports,
     bookingBaseUrl: publicWebUrl(input.bookingBaseUrl, "booking URL"),
-    contact, features: { booking: true, membership: true, coaching: true, tournaments: true },
+    contact,
+    // Full entitlement is identical for customer-hosted, managed and SaaS;
+    // actual feature visibility still follows each venue's admin preferences.
+    capabilities: productEntitlements(deploymentOption),
+    features: { booking: true, membership: true, coaching: true, tournaments: true },
     currency: "INR", timezone: "Asia/Kolkata"
   };
 }
@@ -99,6 +108,9 @@ export function validateRegistry(arenas) {
       !HOSTING_MODES.includes(arena.hostingMode) || !ARENA_STATES.includes(arena.status) ||
       typeof arena.id !== "string" || !arena.id || !arena.brand)
       throw new Error("Invalid arena record");
+    // Older records without deploymentOption remain valid until migrated.
+    if (arena.deploymentOption != null)
+      selectDeploymentOption(arena.deploymentOption, arena.hostingMode);
     if (ids.has(arena.id) || slugs.has(arena.slug)) throw new Error("Duplicate arena ID or slug");
     ids.add(arena.id); slugs.add(arena.slug);
     const configured = (arena.domains || []).map(normalizeHost);

@@ -1,8 +1,25 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Arena demo | PlayNexa</title><link rel="stylesheet" href="./theme.css"></head><body>
-<header><div class="top"><a class="logo" href="./marketplace.html">PLAY<em>NEXA</em></a><nav class="nav" aria-label="PlayNexa demos"><a href="./marketplace.html">Sports marketplace</a><a aria-current="page" href="./arena.html?arena=riverside">Branded arena</a><a href="./onboard.html">New arena setup</a></nav></div></header>
-<main class="container"><div class="notice">BRANDED ARENA DEMO — No production availability, payments or bookings. Selecting an arena through the URL is permitted ONLY in this offline demonstration.</div>
+<header><div class="top"><a class="logo" href="./arena.html?arena=riverside">PLAY<em>NEXA</em></a><nav class="nav" aria-label="PlayNexa demos"><a href="#booking-demo">Sample booking</a><a aria-current="page" href="./arena.html?arena=riverside">Branded arena</a><a href="./onboard.html">New arena setup</a></nav></div></header>
+<main class="container"><div class="notice">SALES DEMO ONLY — This booking journey is simulated in your browser. No real slots are reserved, no payment is collected and no confirmation is sent to an arena.</div>
 <div class="section filters"><label class="field">Switch demo arena<select id="arena"></select></label><a class="button secondary" href="./onboard.html">Configure a new arena</a></div>
-<section class="hero section" id="hero"><div class="eyebrow" id="location"></div><h1 id="name"></h1><p id="tagline"></p><a class="button" href="#facilities">Explore facilities</a></section>
+<section class="hero section" id="hero"><div class="eyebrow" id="location"></div><h1 id="name"></h1><p id="tagline"></p><a class="button" href="#booking-demo">Book a sample slot</a></section>
 <section id="facilities" class="section"><div class="eyebrow">Book • Train • Compete</div><h2>Our sports facilities</h2><div id="sports" class="grid"></div></section>
-<div class="notice section">For a production arena, these cards will be connected to the existing Jnapanam-derived slots, pricing, checkout and operations APIs. This page is a presentation-only preview.</div>
+<section class="section" id="booking-demo">
+  <div class="eyebrow">Customer booking journey</div>
+  <h2>Try a sample facility booking</h2>
+  <p>This is a browser-only mock of the Jnapanam-derived booking journey. Actual arena checkout requires live slot availability, server-held inventory and payment verification.</p>
+  <form class="card" id="booking-form">
+    <div class="grid">
+      <label class="field">Your name<input required maxlength="90" id="demo-customer" placeholder="Demo customer"></label>
+      <label class="field">Sport<select required id="demo-sport"></select></label>
+      <label class="field">Date<input required type="date" id="demo-date"></label>
+      <label class="field">Sample start time<select required id="demo-time"></select></label>
+    </div>
+    <p><button class="button" type="submit">Create sample booking — no payment</button>
+      <button type="button" class="button secondary" id="reset-bookings">Clear sample bookings</button></p>
+    <p class="error" role="alert" id="booking-error"></p>
+    <p role="status" aria-live="polite" id="booking-result"></p>
+  </form>
+  <div class="notice section">The full PlayNexa software includes real online booking, payment verification, cancellation/refund, invoices, check-in, membership, coaching, tournaments, operations and reporting for every hosting option. This static demo does not execute those production APIs.</div>
+</section>
 </main><footer id="footer"></footer><script type="module" src="./arena.mjs"></script></body></html>

@@ -1,90 +1,60 @@
-# PlayNexa: deployment, onboarding and distribution
+# PlayNexa customer onboarding and deployment
 
-## Product decision: TWO axes, THREE selling experiences
+**Current scope: full-featured arena booking and operations. No marketplace at launch.**
 
-Hosting and discovery are orthogonal choices:
+The customer chooses one of three arrangements:
 
-| Experience | Hosting | Directory | Arena branding | Data boundary |
+| Deployment option | Infrastructure owner | Maintenance owner | Booking engine | Branding |
 |---|---|---|---|---|
-| Branded independent deployment | Dedicated app + DB per customer | Optional | Custom domain, logo, colours, policies, optional dedicated mobile build | Physically separate database |
-| White-label SaaS | Shared platform | Optional | Config per verified tenant domain | Tenant-scoped database access (NOT IMPLEMENTED YET) |
-| PlayNexa marketplace | Either of the above | Enabled with arena consent | PlayNexa search, arena-owned venue page | Read-only published discovery index; bookings remain arena-owned |
+| `customer_hosted` | Arena | Arena or agreed vendor | Complete Jnapanam-derived engine | Arena |
+| `playnexa_managed_single_tenant` | Varada Techworks | Varada Techworks | Complete engine | Arena |
+| `multi_tenant_saas` | Varada Techworks | Varada Techworks | Same complete engine, once security-gated | Each arena |
 
-Do not build three different booking systems. A venue can enable marketplace discovery while remaining on a dedicated deployment. The marketplace is a channel, not a second source of availability, payment or booking state.
+A managed single-tenant customer's database and secrets must remain separate; the customer should not need to manage any servers.
+The shared SaaS infrastructure uses one product codebase but requires tenant-aware storage, payments and admin.
 
-## Fast onboarding: minimum viable arena
+## Onboarding wizard — required flows
 
-1. Owner creates an arena account and verifies email/mobile. Platform assigns unique immutable arena ID and proposes a slug.
-2. Owner chooses **Dedicated** or **SaaS** hosting. Separately decides **List on PlayNexa marketplace** on/off.
-3. Uploads logo/hero, selects colours, enters legal name, public brand, contacts, location, languages and policies.
-4. Creates sports → facility/court → capacity → operating days → slots and booking rules. Provide a cloned starter template but no real data.
-5. Adds base prices, peak/off-peak rates, offers, taxes, cancellation/refund policies and invoice/business details.
-6. Invites arena admins, operators/coaches, configures roles and optional devices/QR check-in.
-7. Connects arena-owned payment merchant and verifies keys/webhooks. Store secret references in secret manager, NEVER in branding JSON or client responses.
-8. Chooses `arena.playnexa.in`-style hosted domain (subject to DNS ownership) or verifies a custom domain by challenge.
-9. Complete end-to-end sandbox/UAT: OTP, slots, hold, payment, booking, check-in, cancel/refund, invoice, session handling, Kannada.
-10. Publish independently. Marketplace listing requires separate opt-in; can be toggled later without moving bookings.
+1. **Arena identity:** registered legal name, display name, owner contact, address/GPS, GST/tax identity, currency and timezone.
+2. **Customer hosting choice:** arena-hosted / PlayNexa-managed dedicated / multi-tenant SaaS, without changing feature entitlements.
+3. **Branding:** logo, hero, colours, website/domain, English/Kannada, contact information, legal policies and privacy.
+4. **Facility inventory:** sports, sites, courts, capacity and facilities, opening days/hours, schedule periods, holidays and closures.
+5. **Customer online booking:** published live slots, hold/expiry, dynamic quotes, quantity/capacity control, conflict prevention, booking details and history.
+6. **Revenue and billing:** base prices, peak/off-peak, offers, coupons, taxes, GST invoice/credit note, receipts, loyalty, subscriptions, shop.
+7. **Merchant and refunds:** arena-owned Razorpay merchant, verified checkout/webhooks, partial/full refund controls, deduction reason, audit and reconciliation.
+8. **People and operations:** customer accounts, MFA/OTP, operator, coach, shopkeeper, arena admin, check-in, QR, notifications, daily operation dashboard.
+9. **Commerce and programs:** memberships, training camps, tournaments, organisers, inventory/counter sales, where enabled by the arena.
+10. **UAT and publish:** test payment→booking→invoice→check-in→cancellation/refund, negative cases, roles, language, support and data backups.
 
-### Starting packs
+Full product capability is in `packages/platform-core/deployment.mjs`. All hosting options produce the same entitlements. An operator may disable an irrelevant venue module without removing the underlying entitlement.
 
-- **Badminton arena:** 2–6 courts, 60-minute bookable slots, membership/coaching enabled.
-- **Multi-sport arena:** football + cricket turf, peak/off-peak, large-capacity sessions.
-- **Swimming:** per-session capacity, coaching, daily/weekly slot patterns.
+## Dedicated — customer-hosted or PlayNexa-managed
 
-Templates must seed *configuration only*. Demo profiles and customer data must never be copied into live customer environments.
+Both run **one arena per database**, with separate hosting configuration, domain, credentials, merchant, storage, logs and backup.
+The only difference is who operates the infrastructure and who pays.
+The dedicated environment generator can produce non-secret settings; it cannot deploy or verify UAT.
 
-## Operational architecture
+## Shared multi-tenant SaaS — required implementation
 
-### Dedicated hosting
-- One deployment, DB, object-store partition, encryption secrets, domain, checkout merchant config per arena.
-- Reuse an identical PlayNexa application version and common onboarding/config contract.
-- Platform control plane stores **deployment metadata** and health status, not customer bookings.
-- Synced marketplace discovery is opt-in via authenticated publisher. Slot availability remains in the dedicated instance.
+- A separately authenticated **platform control plane** provisions tenant ID, verified domains, membership, role bindings, branding and merchant secret references.
+- One booking engine services all tenants; enforce `arena_id` on every slot, booking, hold, payment, refund, tax, invoice, notification, membership, shop order, audit log, attachment and scheduled task.
+- Verify arena membership from signed identity and registered domain. Client-supplied arena IDs are selectors only, not authority.
+- Use PostgreSQL RLS plus application-side scoping and tenant-specific foreign keys; test every cross-tenant read/write/export.
+- Tenant-specific merchant routing, signed webhooks, idempotent payment capture/refunds, separate invoice numbers and tax identity.
+- Tenant-scoped cache, file storage, reports, notifications, email/SMS senders, recurring jobs, backup/restore and data deletion.
+- Test all Jnapanam booking and operational features before shared release, including malicious cross-tenant API requests.
 
-### Shared SaaS
-- Central platform control plane with **verified host→tenant mapping** and separate tenant admin RBAC.
-- Every tenant-owned table, query, background job, event, export, PDF, email and cache key has tenant context.
-- RLS and application-level checks, composite tenant foreign keys and negative integration tests are mandatory before enabling real customers.
-- Each arena may still have its own domain, branding and Razorpay merchant configuration.
-- Instance, DB and payments are shared technically only where appropriate; never mix settlement records.
+**State:** the Java backend currently returns 503 outside dedicated hosting. Leave this safety gate intact until the real shared SaaS implementation and negative tests are complete.
 
-### Marketplace
-- Index and display public published arena metadata, sports, location, photos and verified features.
-- Do not present static demo prices as live quotes or make availability claims from cached listing data.
-- First release **handoff checkout**: PlayNexa discovery → canonical arena booking URL → authoritative hold/checkout/invoice.
-- Later, add unified in-marketplace checkout only via tenant-authenticated quote/hold/commit APIs, idempotency keys, webhook state machine, attribution and settlement audit.
-- Protect private tenants and unpublished arenas from indexing.
+## Marketing and billing
 
-## Platform control plane (target schema)
+Each customer buys a complete booking + management package, not a maintenance-only service.
+Subscription/service pricing can differ based on hosting costs and support SLA, but not by withholding core booking or payments. Payment gateway and messaging charges should be disclosed separately.
 
-```text
-organization / account
- └── arena (immutable tenant ID, slug, status, hosting mode)
-     ├── verified_domains (host UNIQUE, proof, certificate status)
-     ├── branding_versions (logo, palettes, text, locales, timestamps)
-     ├── arena_features (feature flags, plans/limits)
-     ├── arena_staff (identity, role, membership)
-     ├── deployment (mode, region, service endpoints, health)
-     ├── marketplace_publication (opt-in, visibility, sync status)
-     └── merchant_secret_ref (vault pointer only)
-```
+**Marketplace:** deferred. No automatic marketplace listings, new booking commissions or forced participation. Revisit only after the three hosting options operate reliably.
 
-Sports, courts, slots, prices, bookings, invoices, memberships and refunds remain in the transaction engine with strict arena isolation.
+## Current demo
 
-## Commercial options (proposal, not implemented)
+`npm run demo` opens an arena-branded **booking sample**. The local simulation neither holds live slots nor captures payment. To work with real bookings, use and test the imported `apps/backend`, `apps/web` and `apps/mobile` applications with their own isolated test database and sandbox merchant.
 
-- Independent arena licence + setup/support (optional hosting ownership).
-- SaaS subscription billed per arena / facility / usage tier.
-- Marketplace listing fee or attributable booking commission if the commercial agreement permits.
-- Do not assume that marketplace commissions can be deducted from a third-party arena's Razorpay merchant settlements without a compliant settlement design.
-
-## Demo and current scope
-
-`npm run demo` starts a **fully synthetic** local showcase:
-- `/` or `/demo/marketplace.html`: consumer sports discovery/search
-- `/demo/arena.html?arena=riverside`: branded arena preview
-- `/demo/onboard.html`: browser-local sample arena creation and instant preview
-
-`npm run arena:new -- --name "Northside Sports" --city Bengaluru --sports "Badminton,Football" --mode saas --marketplace` creates a **local JSON draft** in `config/tenants/`. It neither provisions infrastructure nor publishes a tenant.
-
-This foundation is not a production booking service. The original Jnapanam web, backend and Android code must still be integrated.
+[Feature parity and release evidence checklist](PRODUCT_MODES_AND_FEATURE_PARITY.md).

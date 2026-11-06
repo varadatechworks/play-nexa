@@ -1,70 +1,73 @@
-# PlayNexa
+# PlayNexa — Sports Arena Booking & Management
 
-**White-label sports arena operations + consumer sports marketplace, by Varada Techworks.**
+**Varada Techworks product. Complete online bookings and venue operations, with customer-selected hosting.**
 
-Source product to be generalised: [Jnapanam Sports Zone](https://github.com/bv-prasanna/jnapanam-sports-zone). **Jnapanam's existing production repo and deployment are not changed by this workspace.**
+PlayNexa is built from the maintained Jnapanam Sports Zone application. The original Jnapanam production repository, database and deployment remain separate.
 
-## Three sales experiences, one arena engine
+## Three arrangements, exactly the same core product
 
-1. **Dedicated / independently deployed arena:** each customer owns their deployment, DB, domain, merchant details and branded experience.
-2. **White-label SaaS arena:** tenant-specific brand, users, courts, pricing and payments on a shared platform. Secure database tenancy is **planned, not yet enabled**.
-3. **PlayNexa marketplace:** optional discovery/listing for dedicated or SaaS arenas. Booking and payment must go to one authoritative arena service, not duplicate inventory.
+| Choice | Infrastructure and maintenance | Isolation / brand |
+|---|---|---|
+| **Customer-hosted** | Arena or its IT vendor | Dedicated database and custom arena brand |
+| **PlayNexa-managed, single-tenant** | Varada Techworks | Dedicated database and custom arena brand |
+| **Multi-tenant SaaS** | Varada Techworks | Shared infrastructure with strictly tenant-isolated arena data and custom brand |
 
-Marketplace participation is **independent** of hosting: an arena can be dedicated and also listed in PlayNexa.
+**Hosting is not a feature tier.** All three include the same booking and management capabilities: real-time court/slot availability, capacity rules, online customer bookings, payments, cancellations, partial/full refunds, memberships, coaching, tournaments, promotions, dynamic pricing, tax/GST, invoicing, staff/QR check-in, shop, loyalty, notifications, analytics, audit logs and role-based web/mobile access. Arenas can hide modules not relevant to their services, not lose entitlements.
 
-## Try the interactive demo
+The imported single-tenant backend implements the Jnapanam booking engine. **Shared SaaS is NOT yet production enabled**, because cross-tenant database, payment, authentication and background-job isolation is still being implemented. Its API currently fails closed in shared mode.
 
-Requires Node.js 20 or later; no dependencies and no installs:
+**Marketplace is postponed.** It is not part of PlayNexa's present sales, onboarding, payments or customer subscriptions.
+
+See the [product contract and full feature matrix](docs/PRODUCT_MODES_AND_FEATURE_PARITY.md).
+
+## Try a sales demo
+
+Requires Node.js 20+, no paid services or dependencies for this demo:
 
 ```bash
 npm run demo
 ```
 
-Open **http://127.0.0.1:8080**.
+Open **http://127.0.0.1:8080** to choose a branded arena, view its sports and create a **synthetic sample booking**. Use `/demo/onboard.html` to create a browser-local arena profile and choose one of the three hosting arrangements.
 
-- [Marketplace](demo/marketplace.html) — browse and search synthetic arenas across cities and sports.
-- [Branded arena](demo/arena.html) — switch between arena identities/themes and see sports.
-- [New arena setup](demo/onboard.html) — configure a new brand in the browser and immediately view its demo listing.
+**Warning:** Demo bookings are not live reservations. No payment, inventory hold, invoice, refund or external notification occurs in the static demo.
 
-The demo is local-only and uses synthetic data and browser localStorage. It does **not** create real bookings, process payments, verify domains or provision infrastructure.
-
-## Create a deployable configuration draft
+## Prepare a real arena onboarding draft
 
 ```bash
-npm run arena:new -- --name "Victory Sports Arena" --city Bengaluru --sports "Badminton,Football" --mode dedicated --marketplace
-npm run arena:new -- --name "Metro Swim" --city Mysuru --sports "Swimming" --mode saas
+npm run arena:new -- --name "Victory Sports Arena" --city Bengaluru --sports "Badminton,Football" --deployment customer_hosted
+npm run arena:new -- --name "Northside Sports" --city Mysuru --sports "Swimming,Cricket" --deployment playnexa_managed_single_tenant
+npm run arena:new -- --name "Urban Sports" --city Bengaluru --sports "Badminton" --deployment multi_tenant_saas
 ```
 
-This creates a local arena draft under `config/tenants/`. For **dedicated** deployments, the initial configuration can be rendered to non-secret environment settings and then edited through **Admin → Branding & identity** (`/admin/arena-branding`) after the database migration. Shared SaaS drafts are allowed for planning but deployment is deliberately blocked until tenant isolation is complete.
+Each command generates a **draft only** under `config/tenants/`, including identical full feature entitlements and no marketplace listing. It does **not** create an account, deploy a backend, create live booking slots, verify DNS or take payment.
 
-## Verification
+For either dedicated arrangement, render non-secret deployment environment examples:
+
+```bash
+npm run arena:env -- config/tenants/victory-sports-arena.json
+```
+
+Shared SaaS environment generation remains intentionally blocked until tenant isolation is tested. On a running dedicated deployment the arena admin can edit its branding in **/admin/arena-branding**.
+
+## Testing
 
 ```bash
 npm test
 npm run branding:audit
 ```
 
-Tests cover deployment mode setup, brand and domain inputs, published directory listing, public-data minimisation, host-to-tenant resolution and negative cross-tenant guard cases.
+The audit reports remaining Jnapanam-specific references, images, app links and other content that must be cleaned before commercial white-label release.
 
-## Architecture & delivery
+## Source modules
 
-- `packages/platform-core/index.mjs`: configuration, discovery, host resolution and tenant context contracts.
-- `demo/`: interactive stand-alone demo for pitches (no external paid services).
-- `scripts/`: demo web server and arena configuration CLI.
-- [Deployment and onboarding design](docs/DEPLOYMENT_AND_ONBOARDING.md)
-- [Source code migration map](docs/JNAPANAM_PORTING.md)
-- [Productisation roadmap](docs/ROADMAP.md)
+- `apps/backend`: imported Java 21 / Spring Boot / PostgreSQL booking, commerce, admin, finance, roles and operations engine
+- `apps/web`: responsive customer and admin website
+- `apps/mobile`: Expo/Android app
+- `packages/platform-core`: arena configuration, three deployment choices, full entitlements and evidence-based release checklist
+- `demo`: browser-only, synthetic sales preview
+- `scripts`: local draft generation, dedicated environment output and white-label audit
 
-### Current limitation
+**Next development gates:** complete multi-tenant isolation on the full imported Jnapanam modules, provision per-arena environments/merchant settings, audit legacy-brand assets, and perform booking/payment/refund/invoice UAT. Do not enable SaaS by bypassing the safety filter.
 
-The Jnapanam application source has now been imported into **apps/backend**, **apps/web** and **apps/mobile** from commit `31816d98`. The first branding integration has been added to the Spring Boot public API, the web homepage/header/metadata and the Expo dynamic app configuration. The entire application has **not** been made white-label yet: residual branding, persisted admin configuration, production SaaS tenant isolation, operational provisioning, invoice/notification templates and marketplace booking integration remain incomplete. Do not deploy a new real arena until those requirements and its UAT pass.
-
-Generate matching deployment settings from a local arena draft:
-
-```bash
-npm run arena:env -- config/tenants/victory-sports-arena.json
-```
-
-See [Second-pass release audit](docs/PRODUCTISATION_AUDIT_2026-11-06.md), [Branding integration](docs/ARENA_BRANDING_OPERATIONS.md), [Source import metadata](SOURCE_IMPORT.md) and [Migration plan](docs/JNAPANAM_PORTING.md).
-
-Do not commit production secrets or copy real customer data into demo profiles.
+[Three-mode product contract](docs/PRODUCT_MODES_AND_FEATURE_PARITY.md) · [Detailed onboarding plan](docs/DEPLOYMENT_AND_ONBOARDING.md) · [Roadmap](docs/ROADMAP.md)
