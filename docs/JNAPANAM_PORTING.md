@@ -1,44 +1,30 @@
-# Jnapanam → PlayNexa migration map
+# Jnapanam → PlayNexa application port
 
-Source: `bv-prasanna/jnapanam-sports-zone` (reviewed on 6 November 2026). DO NOT change its production infrastructure during PlayNexa migration.
+The source application was imported into PlayNexa (`apps/backend`, `apps/web`, `apps/mobile`) from pinned Jnapanam revision `31816d98`. The original Jnapanam production repository, database, payment accounts and deployments remain untouched.
 
-## Existing source baseline
+## Full feature retention is mandatory
 
-- `apps/backend`: Java 21, Spring Boot 4.1.1, JPA/PostgreSQL, Flyway, payment/booking/membership/operations modules.
-- `apps/web`: React 19 / Next 16 / Vinext, customer and admin experiences.
-- `apps/mobile`: Expo Android app with Jnapanam-specific package, icon and deep-link scheme.
-- Existing web `app/page.tsx` hardcodes Jnapanam, Holalkere, images and hero video.
-- Existing web `app/layout.tsx` hardcodes metadata and favicon.
-- Existing web `components/site-header.tsx` hardcodes Jnapanam home label/brand logo.
-- Existing web `lib/site-data.ts` lists fixed sports.
-- Existing mobile `app.json` hardcodes app name, `com.jnapanam.sportszone`, asset paths and scheme.
-- Existing backend `application.yml` has instance-wide payment, data source, OTP, notification and bootstrap settings.
+Every hosting choice must use the same core booking and operations engine. The baseline includes sports/facilities, schedules/slots, booking holds and confirmations, Razorpay payment verification, cancellation/refund, memberships/subscriptions, coaching/training, tournaments, pricing/discounts, taxes/GST/invoices, loyalty, shop inventory/counter, notifications, QR check-in, reporting, admin and customer mobile.
 
-## Minimum integration increment
+Do not substitute an operations-only SaaS product, disable booking for subscription plans or fork the booking engine for customer-hosted deployments. Venue-specific visibility settings can hide irrelevant sports or modules only at the owner's instruction.
 
-1. Import maintained source and preserve original tests. Ignore backups, compiled outputs, deployments/secrets and real customer data.
-2. Introduce `ArenaSettings` backend model, repository, DTO and versioned migrations. For a dedicated deployment, one configured `arena_id` may be implicit internally but must be explicit in API and event contracts.
-3. Add public `GET /api/v1/public/arena-branding` scoped from server-verified host. Only publish safe brand fields, sports/features/contact.
-4. Add authenticated, platform-or-arena-authorised branding/config mutations with optimistic revision and change audit; never expose secrets.
-5. Refactor web page, layout metadata, header, site data, about/contact/gallery, emails, PDF invoices, notifications, SMS and policies to read arena settings. Add no-cache/fallback behavior for unknown hosts.
-6. App product variants: (A) common PlayNexa marketplace app using arena selection, (B) optionally separately branded Android builds with per-arena package/scheme/signing. Runtime theme is not sufficient to change Android package name or store icon.
-7. Preserve existing booking, pricing, feature visibility, taxes, payment/refund, invoice, membership, tournaments and shop behavior. Add tenant-aware contract tests before shared mode.
-8. Add dedicated deployment template with arena-specific DB, host, CORS, JWT issuer, OAuth/OTP config, merchant secrets and email sender.
-9. Extend marketplace public index with verified arena listings. Keep payments and booking inventory with source arena.
-10. Run regression, negative security, end-to-end and accessibility tests for both hosting modes, and check existing Jnapanam production independently.
+## Current port state
 
-## Gates
+- Imported booking source is available for single-tenant deployments.
+- Dedicated arena branding can be edited through persisted admin UI and served to the web site.
+- Android build-time arena name, icon, package and deep link are configurable.
+- Some imported media, metadata, invoices, labels, operations copy and notifications still need complete white-label review.
+- Multi-tenant SaaS has NOT been enabled. Existing shared-hosting gate returns HTTP 503 until full isolation is implemented.
+- Production booking/payment/refund/invoice regression against a new arena, and fresh database migration testing, remain required.
 
-**Dedicated deployment gate:** brand settings integrated into web and backend; new empty arena DB; seed facilities; working checkout and UAT; no Jnapanam data/secrets.
+## Next source changes
 
-**Shared SaaS gate:** strong tenant ID scoping for every database table/transaction (including scheduled jobs and webhook callbacks), login claims, RLS, tenant-owned foreign keys, cache/storage namespaces, backups, alerts; verified hostile-user tests.
+1. Remove remaining Jnapanam-specific brand/data artifacts and provide tenant-owned media.
+2. Finish single-tenant deployment automation and admin onboarding from scratch.
+3. Build platform control plane for SaaS domain ownership, tenant provisioning, organisation memberships, subscriptions and operations.
+4. Introduce tenant context in all backend records: booking, slot, hold, payment, webhook, refund, invoice, notification, report, job, asset, commerce, auth and audit.
+5. Add composite tenant foreign keys + PostgreSQL RLS, ensure tenant-aware Spring Security, repositories, background workers, caches and storage.
+6. Prove cross-tenant non-access, booking concurrency safety and per-tenant merchant/tax isolation. Only then enable SaaS with the same features.
+7. Keep PlayNexa marketplace outside the current launch scope.
 
-**Marketplace gate:** publish consent, discoverability, attribution, authoritative booking handoff and no double charge. Central checkout is a separate gated feature.
-
-## Not yet implemented
-
-The PlayNexa repository currently contains a standalone platform contract, sample sales/demo pages and a local configuration generator, but not the actual imported Jnapanam booking backend, web frontend or Android application. No production tenant data isolation or checkout integration can be inferred from the demo.
-
-## Intellectual property and licences
-
-Before commercial redistribution, audit source dependencies, third-party assets, media, licences, the existing mobile app `LICENSE`, and sensitive configuration. Replacing the visible Jnapanam brand must not alter existing customers' contractual or data obligations.
+[Three hosting arrangements and release gates](PRODUCT_MODES_AND_FEATURE_PARITY.md).
