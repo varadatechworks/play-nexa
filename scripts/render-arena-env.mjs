@@ -6,6 +6,7 @@
  */
 import {readFile} from "node:fs/promises";
 import {validateRegistry} from "../packages/platform-core/index.mjs";
+import {deploymentSummary,launchReadiness} from "../packages/platform-core/deployment.mjs";
 const file=process.argv[2];
 if(!file || file==="--help"){
   console.log("Usage: npm run arena:env -- config/tenants/<slug>.json");
@@ -14,13 +15,19 @@ if(!file || file==="--help"){
 try{
   const arena=JSON.parse(await readFile(file,"utf8"));
   validateRegistry([arena]);
-  if(arena.hostingMode!=="dedicated")throw new Error("Shared SaaS deployment is disabled until tenant isolation is fully verified. Create a dedicated arena instead.");
+  const model=deploymentSummary(arena);
+  if(arena.hostingMode!=="dedicated")throw new Error("Shared SaaS deployment is disabled until tenant isolation is fully verified. SaaS remains a valid customer choice and may be saved as a draft.");
+  // Contract readiness is ALWAYS incomplete until verified by the real service.
+  const readiness=launchReadiness(model.option);
   const escaped=value=>JSON.stringify(String(value??""));
   const rows=[
     "# PlayNexa arena deployment settings (NON-SECRET)",
     "# Copy only the relevant variables into each deployment's environment.",
-    "# Dedicated hosting can be enabled now. SaaS mode requires verified domain routing and DB isolation.",
+    "# Dedicated configuration draft only; deployment/payment/booking still require UAT.",
+    "# Customer arrangement: "+model.label+"; operations owner: "+model.operationsOwner,
+    "# Release checks pending: "+readiness.missing.join(", "),
     `PLAYNEXA_HOSTING_MODE=${escaped(arena.hostingMode)}`,
+    `PLAYNEXA_DEPLOYMENT_OPTION=${escaped(model.option)}`,
     `ARENA_NAME=${escaped(arena.name)}`,
     `ARENA_VENUE_CODE=${escaped(arena.slug.toUpperCase().replace(/-/g,"_"))}`,
     `ARENA_SHORT_NAME=${escaped(arena.name.slice(0,25))}`,
