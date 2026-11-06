@@ -137,7 +137,7 @@ export function publicArena(arena) {
       logoUrl: arena.brand.logoUrl, heroUrl: arena.brand.heroUrl },
     sports: (arena.sports || []).map(s => ({ code: s.code, name: s.name })),
     features: { ...arena.features },
-    bookingBaseUrl: arena.bookingBaseUrl
+    bookingBaseUrl: bookingHandoff(arena)
   };
 }
 
