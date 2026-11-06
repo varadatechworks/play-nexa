@@ -14,6 +14,7 @@ if(!file || file==="--help"){
 try{
   const arena=JSON.parse(await readFile(file,"utf8"));
   validateRegistry([arena]);
+  if(arena.hostingMode!=="dedicated")throw new Error("Shared SaaS deployment is disabled until tenant isolation is fully verified. Create a dedicated arena instead.");
   const escaped=value=>JSON.stringify(String(value??""));
   const rows=[
     "# PlayNexa arena deployment settings (NON-SECRET)",
@@ -43,9 +44,13 @@ try{
     "",
     "# Mobile build-time values (requires an arena-owned PNG icon and signing key):",
     `ARENA_APP_NAME=${escaped(arena.name)}`,
+    `ARENA_APP_CITY=${escaped(arena.city)}`,
     `ARENA_APP_SLUG=${escaped("playnexa-"+arena.slug)}`,
     `ARENA_ANDROID_PACKAGE=${escaped("com.varadatechworks.playnexa."+arena.slug.replace(/-/g,"_"))}`,
     `ARENA_APP_SCHEME=${escaped("pn"+arena.slug.replace(/-/g,""))}`,
+    `EXPO_PUBLIC_ARENA_PRIMARY_COLOR=${escaped(arena.brand.primary)}`,
+    `EXPO_PUBLIC_ARENA_ACCENT_COLOR=${escaped(arena.brand.accent)}`,
+    "NEXT_PUBLIC_ARENA_ANDROID_ENABLED=false",
     "# ARENA_APP_ICON_PATH=./assets/images/your-arena-owned-icon.png",
     "# PLAYNEXA_BRANDED_RELEASE=true  (enable only once icon/package/scheme are valid)",
     "",
