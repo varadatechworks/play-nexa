@@ -21,6 +21,7 @@ test("fast setup creates a safe draft with defaults",()=>{
   const arena=buildArenaDraft(base);
   assert.equal(arena.slug,"victory-sports-zone");
   assert.equal(arena.status,"draft");
+  assert.deepEqual(arena.verifiedDomains,[]);
   assert.equal(arena.brand.accent,"#efa948");
   assert.equal(arena.timezone,"Asia/Kolkata");
   assert.equal(arena.sports.length,2);
@@ -83,14 +84,28 @@ test("public profiles do not expose internal or sales-only values",()=>{
   assert.equal(out.name,"Riverside Sports Arena");
 });
 test("booking goes to exactly one arena booking authority",()=>{
-  const arena={...demoArenas[0],bookingBaseUrl:"https://riverside.example.org/book"};
+  const arena={...demoArenas[0],domains:[...demoArenas[0].domains,"riverside.example.org"],verifiedDomains:[...demoArenas[0].verifiedDomains,"riverside.example.org"],bookingBaseUrl:"https://riverside.example.org/book"};
   assert.equal(bookingHandoff(arena), "https://riverside.example.org/book?source=playnexa");
   assert.equal(bookingHandoff({...arena,status:"draft"}),null);
   assert.equal(bookingHandoff({...arena,bookingBaseUrl:null}),null);
+  assert.equal(bookingHandoff({...arena,bookingBaseUrl:"https://unverified.example.com/book"}),null);
+  assert.equal(bookingHandoff({...arena,marketplaceListed:false}),null);
 });
 test("tenant access helper rejects host, actor and target mismatch",()=>{
   assert.equal(requireTenantAccess({hostTenantId:"a",actorTenantId:"a",targetTenantId:"a"}),true);
   assert.throws(()=>requireTenantAccess({hostTenantId:"a",actorTenantId:"b",targetTenantId:"b"}),/TENANT_ACCESS_DENIED/);
   assert.throws(()=>requireTenantAccess({hostTenantId:"a",actorTenantId:"a",targetTenantId:"b"}),/TENANT_ACCESS_DENIED/);
   assert.throws(()=>requireTenantAccess({hostTenantId:"a",actorTenantId:"a"}),/TENANT_ACCESS_DENIED/);
+});
+
+test("new customer domains remain unverified and cannot route",()=>{
+  const draft=buildArenaDraft({...base,domains:["victory.example.com"]});
+  const published={...draft,status:"published"};
+  assert.equal(resolveArenaHost("victory.example.com",[published]).kind,"unknown");
+  const verified={...published,verifiedDomains:["victory.example.com"]};
+  assert.equal(resolveArenaHost("victory.example.com",[verified]).arenaId,verified.id);
+  assert.throws(()=>validateRegistry([{...draft,verifiedDomains:["other.example.com"]}]),/Verified domain/);
+});
+test("marketplace host cannot collide with an arena's custom domain",()=>{
+  assert.throws(()=>resolveArenaHost("riverside.playnexa.example",demoArenas,["riverside.playnexa.example"]),/Marketplace domain/);
 });
