@@ -45,7 +45,7 @@ test("rejects embedded credentials and non-HTTPS remote artwork",()=>{
 test("registry detects duplicate tenant ids and domains",()=>{
   assert.equal(validateRegistry(demoArenas),true);
   assert.throws(()=>validateRegistry([demoArenas[0],demoArenas[0]]),/Duplicate/);
-  const bad={...demoArenas[1],domains:[demoArenas[0].domains[0]]};
+  const bad={...demoArenas[1],domains:[demoArenas[0].domains[0]],verifiedDomains:[demoArenas[0].domains[0]]};
   assert.throws(()=>validateRegistry([demoArenas[0],bad]),/Domain already owned/);
 });
 test("domain lookup fails closed for unknown and draft arenas",()=>{
@@ -68,7 +68,7 @@ test("marketplace includes only published and explicitly listed venues",()=>{
   const all=marketplaceSearch(demoArenas);
   assert.equal(all.length,3);
   assert.ok(!all.some(a=>a.slug==="private"));
-  assert.equal(marketplaceSearch([...demoArenas,{...demoArenas[3],id:"arena-temp",slug:"temp",status:"draft",marketplaceListed:true,domains:["temp.playnexa.example"]}]).length,3);
+  assert.equal(marketplaceSearch([...demoArenas,{...demoArenas[3],id:"arena-temp",slug:"temp",status:"draft",marketplaceListed:true,domains:["temp.playnexa.example"],verifiedDomains:[]}]).length,3);
 });
 test("marketplace supports sport, city and general searches",()=>{
   assert.equal(marketplaceSearch(demoArenas,{city:"Mysuru"}).length,1);
