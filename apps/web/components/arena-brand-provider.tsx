@@ -17,6 +17,9 @@ export const initialArenaBrand: ArenaBrand = {
   revision:0
 };
 const Context=createContext<ArenaBrand>(initialArenaBrand);
+let latestArenaBrand: ArenaBrand = initialArenaBrand;
+/** Client-only display snapshot for non-React payment and receipt callbacks. Never use for authorization. */
+export function getArenaBrandSnapshot(){return latestArenaBrand;}
 const HEX=/^#[a-fA-F0-9]{6}$/;
 function text(input:unknown,fallback:string,max=600){
   return typeof input==="string"&&input.trim().length>0&&input.length<=max?input.trim():fallback;
@@ -75,6 +78,7 @@ export function ArenaBrandProvider({children}:{children:React.ReactNode}){
     return ()=>{controller.abort();window.removeEventListener("playnexa:branding-updated",updated)};
   },[reload]);
   useEffect(()=>{
+    latestArenaBrand=brand;
     document.body.style.setProperty("--olive",brand.primaryColor);
     document.body.style.setProperty("--saffron",brand.accentColor);
     document.body.style.setProperty("--gold",brand.accentColor);
