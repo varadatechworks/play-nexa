@@ -1,14 +1,15 @@
 import {buildArenaDraft, slugify, validateRegistry} from "../packages/platform-core/index.mjs";
+import {DEPLOYMENT_DETAILS} from "../packages/platform-core/deployment.mjs";
 import {demoLocalKey, demoRegistry} from "./demo-data.mjs";
 const $ = id => document.getElementById(id);
 function preview(){
   $("preview-name").textContent=$("name").value.trim()||"Your Sports Arena";
   $("preview-tagline").textContent=$("tagline").value.trim()||"Play • Train • Compete";
-  $("preview-mode").textContent=$("mode").value==="dedicated"?"Dedicated deployment":"SaaS deployment";
+  $("preview-mode").textContent=DEPLOYMENT_DETAILS[$("deployment").value].label;
   $("preview").style.background="linear-gradient(125deg, "+$("primary").value+", #142b43)";
   $("preview").style.borderTop="5px solid "+$("accent").value;
 }
-for(const id of ["name","tagline","mode","primary","accent"])$(id).addEventListener("input",preview);
+for(const id of ["name","tagline","deployment","primary","accent"])$(id).addEventListener("input",preview);
 $("form").addEventListener("reset",()=>{setTimeout(preview,0);$("error").textContent="";$("success").textContent=""});
 $("form").addEventListener("submit",e=>{
   e.preventDefault();$("error").textContent="";$("success").textContent="";
@@ -18,7 +19,7 @@ $("form").addEventListener("submit",e=>{
     const slug=slugify($("name").value);
     const draft=buildArenaDraft({
       name:$("name").value,slug,city:$("city").value,sports,
-      hostingMode:$("mode").value,marketplaceListed:$("listed").checked,
+      deploymentOption:$("deployment").value,marketplaceListed:false,
       tagline:$("tagline").value,primaryColor:$("primary").value,
       accentColor:$("accent").value,domains:domain?[domain]:[]
     });
@@ -32,7 +33,7 @@ $("form").addEventListener("submit",e=>{
     let added=[];try{added=JSON.parse(localStorage.getItem(demoLocalKey)||"[]")}catch{}
     if(!Array.isArray(added))added=[];
     added.push(draft);localStorage.setItem(demoLocalKey,JSON.stringify(added));
-    $("success").textContent="Demo created in this browser. Open the preview or marketplace to see it.";
+    $("success").textContent="Full-featured arena profile created for this browser demo. Open its booking preview.";
     $("preview-link").href="./arena.html?arena="+encodeURIComponent(draft.slug);
     $("json").textContent=JSON.stringify(draft,null,2);
     $("result").classList.remove("hidden");
