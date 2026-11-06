@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AppProvider } from "@/components/app-provider";
+import { ArenaBrandProvider } from "@/components/arena-brand-provider";
 import { arenaConfig } from "@/lib/arena-config";
 
 export const metadata: Metadata = {
@@ -19,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased" style={{ "--olive": arenaConfig.primaryColor, "--saffron": arenaConfig.accentColor, "--gold": arenaConfig.accentColor } as React.CSSProperties}><AppProvider>{children}</AppProvider></body>
+      <body className="antialiased" style={{ "--olive": arenaConfig.primaryColor, "--saffron": arenaConfig.accentColor, "--gold": arenaConfig.accentColor } as React.CSSProperties}><ArenaBrandProvider><AppProvider>{children}</AppProvider></ArenaBrandProvider></body>
     </html>
   );
 }

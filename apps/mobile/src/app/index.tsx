@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -31,6 +32,7 @@ const services = [
 
 export default function HomeScreen() {
   const { t } = useTranslation();
+  const arenaName=Constants.expoConfig?.name||'PlayNexa Arena';
   const { user } = useAuth();
   const [sports, setSports] = useState<Sport[]>([]);
   const [loadingSports, setLoadingSports] = useState(true);
@@ -50,7 +52,7 @@ export default function HomeScreen() {
         <View style={styles.hero}>
           <Text style={styles.eyebrow}>{t('home.destination')}</Text>
           <Text style={styles.greeting}>
-            {user ? t('home.welcome', { name: user.fullName.split(' ')[0] }) : t('home.welcomeGuest')}
+            {user ? t('home.welcome', { name: user.fullName.split(' ')[0] }) : t('home.welcomeGuest',{name:arenaName})}
           </Text>
           <Text style={styles.heroTitle}>{t('home.headline')}</Text>
           <Text style={styles.heroDescription}>{t('home.description')}</Text>
@@ -79,7 +81,7 @@ export default function HomeScreen() {
 
           <View style={styles.sectionHeader}>
             <View>
-              <Text style={styles.sectionEyebrow}>{t('home.atJnapanam')}</Text>
+              <Text style={styles.sectionEyebrow}>{arenaName.toUpperCase()}</Text>
               <Text style={styles.sectionTitle}>{t('home.chooseSport')}</Text>
             </View>
             <Pressable onPress={() => router.push('/bookings')}>

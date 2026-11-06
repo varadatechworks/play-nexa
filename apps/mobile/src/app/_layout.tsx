@@ -13,7 +13,7 @@ import { getStoredValue } from '@/lib/storage';
 void SplashScreen.preventAutoHideAsync();
 function LanguageBootstrap(){
   const {i18n}=useTranslation();
-  useEffect(()=>{void getStoredValue('jnapanam.language').then(language=>{
+  useEffect(()=>{void getStoredValue('playnexa.language').then(language=>{
     if(language==='en'||language==='kn')void i18n.changeLanguage(language);
   });},[i18n]);
   return null;

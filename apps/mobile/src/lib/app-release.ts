@@ -3,8 +3,10 @@ import Constants from 'expo-constants';
 import {Platform} from 'react-native';
 import {getStoredValue,setStoredValue} from '@/lib/storage';
 
-export const PERMANENT_APP_LINK='https://jnapanam.in/app';
-const CACHE_KEY='jnapanam.android.release-policy.v1';
+const rawArenaUrl=process.env.EXPO_PUBLIC_WEB_URL?.trim()||"";
+const arenaWebUrl=rawArenaUrl.endsWith("/")?rawArenaUrl.slice(0,-1):rawArenaUrl;
+export const PERMANENT_APP_LINK=/^https:\/\/[^/]+/i.test(arenaWebUrl)?arenaWebUrl+"/app":"";
+const CACHE_KEY='playnexa.android.release-policy.v1';
 export type AppReleasePolicy={
  available:boolean;latestVersionCode:number;latestVersionName:string;
  minimumSupportedVersionCode:number;updateMode:'OFF'|'OPTIONAL'|'MANDATORY';

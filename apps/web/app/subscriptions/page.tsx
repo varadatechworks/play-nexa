@@ -93,7 +93,7 @@ export default function SubscriptionsPage(){
  return <><SiteHeader/><div className={user?shell.shell:styles.publicShell}>{user&&<PortalSideNavigation active="subscriptions"/>}<main className={styles.page}>
   <header><span className={styles.eyebrow}>BILLING · MEMBERSHIPS & TRAINING</span><h1>Recurring Subscriptions</h1>
     <p>Choose a renewable membership or scheduled training installments. One-time purchases remain available in the regular portal.</p></header>
-  {!cfg.enabled&&<div className={styles.warning} role="status">Recurring billing is not enabled for this Jnapanam deployment. No automatic charges can be started. The administrator must finish Razorpay mandate UAT first.</div>}
+  {!cfg.enabled&&<div className={styles.warning} role="status">Recurring billing is not enabled for this arena. No automatic charges can be started. The administrator must finish Razorpay mandate UAT first.</div>}
   {cfg.enabled&&!cfg.providerConfigured&&<div className={styles.warning}>Razorpay recurring billing credentials have not been configured.</div>}
   {error&&<div className={styles.error} role="alert">{error}</div>}
   {message&&<div className={styles.success} role="status">{message}</div>}

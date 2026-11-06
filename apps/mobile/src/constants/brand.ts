@@ -1,7 +1,8 @@
+const safeColor=(value:string|undefined,fallback:string)=>/^#[a-fA-F0-9]{6}$/.test(value||"")?value!:fallback;
 export const BrandColors = {
-  primary: '#263712',
+  primary: safeColor(process.env.EXPO_PUBLIC_ARENA_PRIMARY_COLOR, '#263712'),
   secondary: '#415126',
-  accent: '#D23808',
+  accent: safeColor(process.env.EXPO_PUBLIC_ARENA_ACCENT_COLOR, '#D23808'),
   accentSoft: '#FFF0E7',
   success: '#4D7A35',
   background: '#F5F1E8',

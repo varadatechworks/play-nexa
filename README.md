@@ -35,12 +35,13 @@ npm run arena:new -- --name "Victory Sports Arena" --city Bengaluru --sports "Ba
 npm run arena:new -- --name "Metro Swim" --city Mysuru --sports "Swimming" --mode saas
 ```
 
-This creates a draft under `config/tenants/`. To change the arena's presentation, edit the configuration; do not change business source code. Provisioning, payment integration and backend binding are still to be implemented.
+This creates a local arena draft under `config/tenants/`. For **dedicated** deployments, the initial configuration can be rendered to non-secret environment settings and then edited through **Admin → Branding & identity** (`/admin/arena-branding`) after the database migration. Shared SaaS drafts are allowed for planning but deployment is deliberately blocked until tenant isolation is complete.
 
 ## Verification
 
 ```bash
 npm test
+npm run branding:audit
 ```
 
 Tests cover deployment mode setup, brand and domain inputs, published directory listing, public-data minimisation, host-to-tenant resolution and negative cross-tenant guard cases.
@@ -64,6 +65,6 @@ Generate matching deployment settings from a local arena draft:
 npm run arena:env -- config/tenants/victory-sports-arena.json
 ```
 
-See [Branding integration](docs/ARENA_BRANDING_OPERATIONS.md), [Source import metadata](SOURCE_IMPORT.md) and [Migration plan](docs/JNAPANAM_PORTING.md).
+See [Second-pass release audit](docs/PRODUCTISATION_AUDIT_2026-11-06.md), [Branding integration](docs/ARENA_BRANDING_OPERATIONS.md), [Source import metadata](SOURCE_IMPORT.md) and [Migration plan](docs/JNAPANAM_PORTING.md).
 
 Do not commit production secrets or copy real customer data into demo profiles.

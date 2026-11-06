@@ -1,13 +1,15 @@
 "use client";
 import Link from "next/link";
+import {useArenaBrand} from "@/components/arena-brand-provider";
 import {adminAreas,visibleAdminModules} from "./admin-navigation";
 import styles from "./admin-dashboard-links.module.css";
 
 export function AdminDashboardLinks({superAdmin}:{superAdmin:boolean}){
+  const arena=useArenaBrand();
   const modules=visibleAdminModules(superAdmin).filter(module=>module.id!=="dashboard");
   const featured=modules.filter(module=>module.featured);
   return <section className={styles.hub} aria-label="Admin module shortcuts">
-    <div className={styles.heading}><div><span className={styles.eyebrow}>QUICK ACCESS</span><h2>Manage Jnapanam</h2><p>Open pricing, taxes, offers, staffing and billing directly from your dashboard.</p></div></div>
+    <div className={styles.heading}><div><span className={styles.eyebrow}>QUICK ACCESS</span><h2>Manage {arena.name}</h2><p>Open pricing, taxes, offers, staffing and billing directly from your dashboard.</p></div></div>
     <div className={styles.featured}>
       {featured.map(module=><Link href={module.href} className={styles.featuredCard} key={module.id}>
         <strong>{module.label}</strong><span>{module.description}</span>

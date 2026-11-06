@@ -23,6 +23,8 @@ jobs:
         with:
           node-version: '22'
       - run: npm test
+      - name: Report remaining legacy arena branding references
+        run: npm run branding:audit
 
   web-build:
     runs-on: ubuntu-latest

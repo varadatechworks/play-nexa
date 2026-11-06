@@ -1,29 +1,25 @@
 {
   "expo": {
-    "name": "Jnapanam Sports Zone",
-    "slug": "jnapanam-sports-zone",
+    "name": "PlayNexa Arena",
+    "slug": "playnexa-arena",
     "version": "1.1.1",
     "orientation": "portrait",
-    "icon": "./assets/images/jnapanam-brand.png",
-    "scheme": "jnapanamsportszone",
+    "scheme": "playnexa",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/jnapanam-brand.png",
       "supportsTablet": true,
-      "bundleIdentifier": "com.jnapanam.sportszone"
+      "bundleIdentifier": "com.varadatechworks.playnexa.demo"
     },
     "android": {
-      "package": "com.jnapanam.sportszone",
+      "package": "com.varadatechworks.playnexa.demo",
       "adaptiveIcon": {
-        "backgroundColor": "#FFFFFF",
-        "foregroundImage": "./assets/images/jnapanam-brand.png"
+        "backgroundColor": "#FFFFFF"
       },
       "predictiveBackGestureEnabled": false,
       "versionCode": 3
     },
     "web": {
-      "output": "static",
-      "favicon": "./assets/images/jnapanam-brand.png"
+      "output": "static"
     },
     "plugins": [
       "expo-router",
@@ -31,7 +27,6 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#FFFFFF",
-          "image": "./assets/images/jnapanam-brand.png",
           "imageWidth": 140
         }
       ],
@@ -40,7 +35,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Jnapanam uses your location with your permission to record where activities occur. You can continue without location.",
+          "locationWhenInUsePermission": "PlayNexa uses your location with permission to record activities. You can continue without location.",
           "isAndroidBackgroundLocationEnabled": false,
           "isAndroidForegroundServiceEnabled": false
         }

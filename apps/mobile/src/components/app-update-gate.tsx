@@ -38,7 +38,7 @@ export function AppUpdateGate({children}:PropsWithChildren){
  },[check]);
 
  if(Platform.OS!=='android')return <>{children}</>;
- if(checking)return <View style={styles.center}><ActivityIndicator size="large" color={BrandColors.accent}/><Text style={styles.label}>Checking Jnapanam app version…</Text></View>;
+ if(checking)return <View style={styles.center}><ActivityIndicator size="large" color={BrandColors.accent}/><Text style={styles.label}>Checking your arena app version…</Text></View>;
  const required=serverBlock||decideUpdate(policy,installed)==='mandatory';
  const available=decideUpdate(policy,installed)==='optional';
  if(required||available&&dismissedCode!==policy?.latestVersionCode){
@@ -47,19 +47,19 @@ export function AppUpdateGate({children}:PropsWithChildren){
      <MaterialCommunityIcons name={required?'alert-circle-outline':'cellphone-arrow-down'} color={BrandColors.accent} size={58}/>
      <Text style={styles.title}>{required?'App update required':'New app version available'}</Text>
      <Text style={styles.copy}>{required
-       ?'To continue using Jnapanam, install the latest Android app version. Your current build is no longer supported.'
-       :'A newer Jnapanam Android app is available. You can update now or continue using this version.'}</Text>
+       ?'To continue using this arena app, install the latest Android app version. Your current build is no longer supported.'
+       :'A newer arena Android app is available. You can update now or continue using this version.'}</Text>
      <Text style={styles.version}>Installed {installedVersionName()} (build {installed}) · Latest {policy?.latestVersionName||'available'} (build {policy?.latestVersionCode||'—'})</Text>
      {!!policy?.releaseNotes&&<Text style={styles.notes}>{policy.releaseNotes}</Text>}
-     <Pressable accessibilityRole="button" style={styles.action} onPress={()=>void Linking.openURL(PERMANENT_APP_LINK)}>
+     {PERMANENT_APP_LINK?<Pressable accessibilityRole="button" style={styles.action} onPress={()=>void Linking.openURL(PERMANENT_APP_LINK)}>
       <MaterialCommunityIcons name="download" color="#fff" size={19}/><Text style={styles.actionText}>Download updated app</Text>
-     </Pressable>
+     </Pressable>:<Text style={styles.copy}>Please contact the arena team for the latest signed APK. A download URL has not been configured.</Text>}
      {!required&&<Pressable accessibilityRole="button" style={styles.outline} onPress={()=>setDismissedCode(policy?.latestVersionCode||0)}>
        <Text style={styles.outlineText}>Later · Continue to app</Text></Pressable>}
      <Pressable accessibilityRole="button" style={styles.outline} onPress={()=>void check()}>
        <Text style={styles.outlineText}>I've updated · Check again</Text></Pressable>
      {!!error&&<Text style={styles.error}>{error}</Text>}
-     <Text style={styles.hint}>Normally Android can update this app without uninstalling it when the APK has the same package name and signing certificate. If Android reports a signature conflict, contact Jnapanam support before uninstalling because local app data may be lost.</Text>
+     <Text style={styles.hint}>Normally Android can update this app without uninstalling it when the APK has the same package name and signing certificate. If Android reports a signature conflict, contact your arena support team before uninstalling because local app data may be lost.</Text>
     </View>
    </ScrollView>;
  }

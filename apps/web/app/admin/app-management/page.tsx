@@ -5,8 +5,10 @@ import styles from "./app-management.module.css";
 
 type Policy={latestVersionCode:number;latestVersionName:string;minimumSupportedVersionCode:number;
   updateMode:"OFF"|"OPTIONAL"|"MANDATORY";apkUrl:string|null;releaseNotes:string|null;downloadPageUrl:string;updatedAt:string};
-const fixedLink="https://jnapanam.in/app";
+
 export default function AppManagement(){
+ const [fixedLink,setFixedLink]=useState("/app");
+ useEffect(()=>{setFixedLink(window.location.origin+"/app")},[]);
  const [policy,setPolicy]=useState<Policy|null>(null);
  const [busy,setBusy]=useState(false);const [loading,setLoading]=useState(true);
  const [message,setMessage]=useState("");const [error,setError]=useState("");
@@ -40,7 +42,7 @@ export default function AppManagement(){
  }
  return <main className={styles.page}>
   <header className={styles.heading}><span>ADMIN · SYSTEM</span><h1>App Management</h1>
-   <p>Manage the Android APK link and version requirements without changing the website or reprinting QR codes.</p></header>
+   <p>Manage the Android APK link and version requirements for this arena. Use its own domain and signed APK.</p></header>
   {loading?<p role="status">Loading current Android release settings…</p>:policy&&<div className={styles.layout}>
    <form onSubmit={event=>void save(event)} className={styles.card}>
     <h2>Android APK release</h2>
@@ -53,12 +55,12 @@ export default function AppManagement(){
       <option value="OPTIONAL">Optional — users may update later</option>
       <option value="MANDATORY">Mandatory — block only builds below minimum</option>
      </select></label>
-     <label className={styles.full}>Public APK link (Google Drive, GitHub release, Expo or trusted Jnapanam/R2 host)
+     <label className={styles.full}>Public APK link (Google Drive, GitHub release, Expo or trusted arena file host)
       <input type="url" placeholder="https://drive.google.com/file/d/.../view" value={policy.apkUrl||""} onChange={e=>edit("apkUrl",e.target.value)} />
      </label>
      <label className={styles.full}>Release notes<textarea rows={4} maxLength={1500} value={policy.releaseNotes||""} onChange={e=>edit("releaseNotes",e.target.value)} placeholder="What changed in this app release?"/></label>
     </div>
-    <p className={styles.hint}>Publish the APK and test it on Android before setting Mandatory. Build numbers must match the signed APK (not just the filename). Changing a Google Drive URL is enough; QR artwork stays unchanged.</p>
+    <p className={styles.hint}>Publish the APK and test it on Android before setting Mandatory. Build numbers must match the signed APK (not just the filename). Confirm the official arena download URL before sharing it with customers.</p>
     <div className={styles.modeExplanation}>
       {policy.updateMode==="OFF"?"Off: link may be shown, but no app version is blocked.":
        policy.updateMode==="OPTIONAL"?"Optional: Android users on lower builds see Update / Later; access continues.":
@@ -71,14 +73,14 @@ export default function AppManagement(){
    <aside className={styles.card}>
     <h2>Permanent download link</h2>
     <a className={styles.stableLink} href={fixedLink} target="_blank" rel="noreferrer">{fixedLink}</a>
-    <p className={styles.hint}>Share this link and the QR below with all customers. It always resolves through the latest admin-managed APK URL.</p>
-    <img className={styles.qr} src="/app-download-qr.svg" alt="QR code for https://jnapanam.in/app"/>
+    <p className={styles.hint}>Share this venue-specific link with customers. It resolves through the latest admin-managed APK URL.</p>
+    <p className={styles.hint}>QR artwork must be generated for this arena’s own domain. Never reuse another venue’s QR code.</p>
     <div className={styles.links}>
-      <a href="/app-download-qr.svg" download="jnapanam-android-qr.svg">Download printable QR</a>
+      
       <a href={fixedLink} target="_blank" rel="noreferrer">Open public app page</a>
       {policy.apkUrl&&<a href={API_BASE_URL+"/api/v1/public/app-download/android"} target="_blank" rel="noreferrer">Test configured APK destination</a>}
     </div>
-    <p className={styles.hint}>Updated {new Date(policy.updatedAt).toLocaleString("en-IN")}. The old QR linking directly to Drive cannot be changed; distribute this new permanent QR.</p>
+    <p className={styles.hint}>Updated {new Date(policy.updatedAt).toLocaleString("en-IN")}. Verify the new APK using this arena’s own domain before publishing or printing signage.</p>
    </aside>
   </div>}
  </main>;

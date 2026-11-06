@@ -1,12 +1,16 @@
-import Image from "next/image";
+"use client";
 import Link from "next/link";
-import {CONTACT_PHONES} from "@/lib/contact";
+import {useArenaBrand} from "@/components/arena-brand-provider";
 
 export function SiteFooter() {
+  const arena=useArenaBrand();
   return <footer className="site-footer"><div className="container footer-grid">
-    <div><Image unoptimized src="/images/jnapanam-logo.png" alt="Jnapanam Sports Zone" width={155} height={155}/><p>Play. Train. Compete. Grow.</p><p>Building healthier lives and stronger character through sport.</p></div>
-    <div><h3>Explore</h3><Link href="/about">About Us</Link><Link href="/sports">Sports & Facilities</Link><Link href="/memberships">Memberships</Link><Link href="/events">Events</Link></div>
-    <div><h3>Support</h3><Link href="/contact">Contact Us</Link><Link href="/login">Login</Link><Link href="/register">Register</Link><a href="mailto:info@jnapanamsportszone.in">Email Us</a></div>
-    <div><h3>Visit Us</h3><p>Jnapanam Sports Zone<br/>Holalkere, Chitradurga<br/>Karnataka, India</p>{CONTACT_PHONES.map(phone=><a key={phone.e164} href={`tel:${phone.e164}`}>{phone.display}</a>)}</div>
-  </div><div className="footer-bottom">© 2026 Jnapanam Sports Zone. All rights reserved.</div></footer>;
+    <div>{arena.logoUrl?<img src={arena.logoUrl} alt={arena.name} width={155} height={120} style={{objectFit:"contain"}}/>:
+      <strong style={{fontSize:23}}>{arena.shortName}</strong>}
+      <p>{arena.tagline}</p><p>{arena.purpose}</p></div>
+    <div><h3>Explore</h3><Link href="/about">About Us</Link><Link href="/sports">Sports &amp; Facilities</Link><Link href="/memberships">Memberships</Link><Link href="/events">Events</Link></div>
+    <div><h3>Support</h3><Link href="/contact">Contact Us</Link><Link href="/login">Login</Link><Link href="/register">Register</Link></div>
+    <div><h3>Visit Us</h3><p>{arena.name}<br/>{arena.city}, India</p>
+      {arena.phone&&<a href={`tel:${arena.phone.replace(/[^+0-9]/g,"")}`}>{arena.phone}</a>}</div>
+  </div><div className="footer-bottom">© {new Date().getFullYear()} {arena.name}. Booking software powered by PlayNexa.</div></footer>;
 }

@@ -21,6 +21,7 @@ test("fast setup creates a safe draft with defaults",()=>{
   const arena=buildArenaDraft(base);
   assert.equal(arena.slug,"victory-sports-zone");
   assert.equal(arena.status,"draft");
+  assert.deepEqual(arena.verifiedDomains,[]);
   assert.equal(arena.brand.accent,"#efa948");
   assert.equal(arena.timezone,"Asia/Kolkata");
   assert.equal(arena.sports.length,2);
@@ -44,7 +45,7 @@ test("rejects embedded credentials and non-HTTPS remote artwork",()=>{
 test("registry detects duplicate tenant ids and domains",()=>{
   assert.equal(validateRegistry(demoArenas),true);
   assert.throws(()=>validateRegistry([demoArenas[0],demoArenas[0]]),/Duplicate/);
-  const bad={...demoArenas[1],domains:[demoArenas[0].domains[0]]};
+  const bad={...demoArenas[1],domains:[demoArenas[0].domains[0]],verifiedDomains:[demoArenas[0].domains[0]]};
   assert.throws(()=>validateRegistry([demoArenas[0],bad]),/Domain already owned/);
 });
 test("domain lookup fails closed for unknown and draft arenas",()=>{
@@ -67,7 +68,7 @@ test("marketplace includes only published and explicitly listed venues",()=>{
   const all=marketplaceSearch(demoArenas);
   assert.equal(all.length,3);
   assert.ok(!all.some(a=>a.slug==="private"));
-  assert.equal(marketplaceSearch([...demoArenas,{...demoArenas[3],id:"arena-temp",slug:"temp",status:"draft",marketplaceListed:true,domains:["temp.playnexa.example"]}]).length,3);
+  assert.equal(marketplaceSearch([...demoArenas,{...demoArenas[3],id:"arena-temp",slug:"temp",status:"draft",marketplaceListed:true,domains:["temp.playnexa.example"],verifiedDomains:[]}]).length,3);
 });
 test("marketplace supports sport, city and general searches",()=>{
   assert.equal(marketplaceSearch(demoArenas,{city:"Mysuru"}).length,1);
@@ -83,14 +84,33 @@ test("public profiles do not expose internal or sales-only values",()=>{
   assert.equal(out.name,"Riverside Sports Arena");
 });
 test("booking goes to exactly one arena booking authority",()=>{
-  const arena={...demoArenas[0],bookingBaseUrl:"https://riverside.example.org/book"};
+  const arena={...demoArenas[0],domains:[...demoArenas[0].domains,"riverside.example.org"],verifiedDomains:[...demoArenas[0].verifiedDomains,"riverside.example.org"],bookingBaseUrl:"https://riverside.example.org/book"};
   assert.equal(bookingHandoff(arena), "https://riverside.example.org/book?source=playnexa");
   assert.equal(bookingHandoff({...arena,status:"draft"}),null);
   assert.equal(bookingHandoff({...arena,bookingBaseUrl:null}),null);
+  assert.equal(bookingHandoff({...arena,bookingBaseUrl:"https://unverified.example.com/book"}),null);
+  assert.equal(bookingHandoff({...arena,marketplaceListed:false}),null);
 });
 test("tenant access helper rejects host, actor and target mismatch",()=>{
   assert.equal(requireTenantAccess({hostTenantId:"a",actorTenantId:"a",targetTenantId:"a"}),true);
   assert.throws(()=>requireTenantAccess({hostTenantId:"a",actorTenantId:"b",targetTenantId:"b"}),/TENANT_ACCESS_DENIED/);
   assert.throws(()=>requireTenantAccess({hostTenantId:"a",actorTenantId:"a",targetTenantId:"b"}),/TENANT_ACCESS_DENIED/);
   assert.throws(()=>requireTenantAccess({hostTenantId:"a",actorTenantId:"a"}),/TENANT_ACCESS_DENIED/);
+});
+
+test("new customer domains remain unverified and cannot route",()=>{
+  const draft=buildArenaDraft({...base,domains:["victory.example.com"]});
+  const published={...draft,status:"published"};
+  assert.equal(resolveArenaHost("victory.example.com",[published]).kind,"unknown");
+  const verified={...published,verifiedDomains:["victory.example.com"]};
+  assert.equal(resolveArenaHost("victory.example.com",[verified]).arenaId,verified.id);
+  assert.throws(()=>validateRegistry([{...draft,verifiedDomains:["other.example.com"]}]),/Verified domain/);
+});
+test("marketplace host cannot collide with an arena's custom domain",()=>{
+  assert.throws(()=>resolveArenaHost("riverside.playnexa.example",demoArenas,["riverside.playnexa.example"]),/Marketplace domain/);
+});
+
+test("public directory never exposes an unverified booking redirect",()=>{
+  const unsafe={...demoArenas[0],bookingBaseUrl:"https://unknown.example.org/book"};
+  assert.equal(publicArena(unsafe).bookingBaseUrl,null);
 });

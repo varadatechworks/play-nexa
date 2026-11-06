@@ -14,12 +14,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class VenueCheckInService {
     public static final String VENUE_CODE = "JNAPANAM";
     private static final int EARLY_MINUTES = 30;
+
+    @Value("${ARENA_VENUE_CODE:JNAPANAM}")
+    private String configuredVenueCode;
 
     private final BookingRepository bookings;
     private final UserRepository users;
@@ -59,8 +63,10 @@ public class VenueCheckInService {
         return BookingResponse.from(booking);
     }
 
-    private static void validateVenue(String venueCode) {
-        if (venueCode == null || !VENUE_CODE.equalsIgnoreCase(venueCode.trim())) {
+    private void validateVenue(String venueCode) {
+        String expected = configuredVenueCode == null || configuredVenueCode.isBlank()
+                ? VENUE_CODE : configuredVenueCode.trim().toUpperCase(java.util.Locale.ROOT);
+        if (venueCode == null || !expected.equalsIgnoreCase(venueCode.trim())) {
             throw new NotFoundException("Venue QR is invalid");
         }
     }

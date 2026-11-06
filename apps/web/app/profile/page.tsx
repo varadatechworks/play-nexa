@@ -83,7 +83,7 @@ export default function ProfilePage(){
   if(!ready||!user)return <main className={styles.page}>Loading profile…</main>;
   const initials=(user.displayName||user.fullName).split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase();
   return <><SiteHeader/><div className={shell.shell}><PortalSideNavigation active="profile"/><main className={styles.page}>
-    <header className={styles.header}><div><span>ACCOUNT</span><h1>My Profile</h1><p>Manage how your account appears across Jnapanam Sports Zone.</p></div><Link href="/dashboard?section=profile">← Dashboard</Link></header>
+    <header className={styles.header}><div><span>ACCOUNT</span><h1>My Profile</h1><p>Manage how your account appears for your arena.</p></div><Link href="/dashboard?section=profile">← Dashboard</Link></header>
     <section className={styles.card}>
       <div className={styles.photoPanel}>
         {photoUrl?<img src={photoUrl} alt="Profile" className={styles.photo}/>:<div className={styles.initials}>{initials}</div>}

@@ -1,0 +1,28 @@
+name: Dedicated arena branding verification
+on:
+  pull_request:
+    paths:
+      - 'apps/backend/src/main/java/com/jnapanam/sportszone/arena/**'
+      - 'apps/backend/src/test/java/com/jnapanam/sportszone/arena/**'
+      - 'apps/backend/src/main/resources/db/migration/V60__playnexa_arena_branding_settings.sql'
+      - 'apps/backend/pom.xml'
+      - '.github/workflows/arena-branding-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend-branding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: apps/backend/pom.xml
+      - name: Test public and admin branding contracts
+        run: mvn -q -f apps/backend/pom.xml -Dtest=PublicArenaBrandingControllerTest,SharedHostingSafetyGateFilterTest test

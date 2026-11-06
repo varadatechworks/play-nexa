@@ -14,14 +14,15 @@ const name = process.env.ARENA_APP_NAME || "PlayNexa Arena";
 const slug = process.env.ARENA_APP_SLUG || "playnexa-arena";
 const packageId = process.env.ARENA_ANDROID_PACKAGE || "com.varadatechworks.playnexa.demo";
 const scheme = process.env.ARENA_APP_SCHEME || "playnexa";
-const icon = process.env.ARENA_APP_ICON_PATH || "./assets/images/icon.png";
+const icon = process.env.ARENA_APP_ICON_PATH || undefined;
+const city = process.env.ARENA_APP_CITY || "Bengaluru";
 const isRelease = process.env.PLAYNEXA_BRANDED_RELEASE === "true";
 
 if (isRelease && (!process.env.ARENA_ANDROID_PACKAGE ||
     !process.env.ARENA_APP_ICON_PATH || !process.env.ARENA_APP_SCHEME)) {
   throw new Error("Branded release requires unique app package, icon and deep-link scheme");
 }
-if (isRelease && (icon.toLowerCase().includes("jnapanam") ||
+if (isRelease && (!icon || icon.toLowerCase().includes("jnapanam") ||
     !icon.startsWith("./assets/") || !existsSync(resolve(__dirname, icon)))) {
   throw new Error("Branded release requires a valid arena-owned icon under assets");
 }
@@ -32,14 +33,18 @@ if (!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/.test(packageId))
 module.exports = {
   expo: {
     ...source, name, slug, scheme, icon,
-    plugins: source.plugins?.map(plugin =>
-      Array.isArray(plugin) && plugin[0] === "expo-splash-screen"
-        ? [plugin[0], {...plugin[1], image:icon}]
-        : plugin),
+    extra: {...source.extra, arenaName:name, arenaCity:city},
+    plugins: source.plugins?.map(plugin => {
+      if (!Array.isArray(plugin)) return plugin;
+      if (plugin[0] === "expo-splash-screen") return [plugin[0], {...plugin[1], image:icon}];
+      if (plugin[0] === "expo-location") return [plugin[0], {...plugin[1], locationWhenInUsePermission:
+        `${name} uses your location with permission to record activities. You can continue without location.`}];
+      return plugin;
+    }),
     ios: { ...source.ios, bundleIdentifier: process.env.ARENA_IOS_BUNDLE_ID || packageId, icon },
     android: {
       ...source.android, package: packageId,
-      adaptiveIcon: { ...source.android?.adaptiveIcon, foregroundImage: icon }
+      adaptiveIcon: icon ? { ...source.android?.adaptiveIcon, foregroundImage: icon } : undefined
     },
     web: { ...source.web, favicon: icon }
   }
