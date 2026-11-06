@@ -1,38 +1,45 @@
-# PlayNexa productisation roadmap
+# PlayNexa delivery roadmap
 
-## Origin and baseline
-Jnapanam source: `bv-prasanna/jnapanam-sports-zone` (Spring Boot / PostgreSQL backend, React / Vinext web application, Android build). Copying code is not the same as secure multi-tenancy. Preserve existing Jnapanam deployment and its payment data.
+## Product outcome
 
-## Phase 1: reliable dedicated-arena deployments
-1. Import the maintained Jnapanam application into this repository after reviewing current main and excluding build outputs, secrets, backup directories and deployment-specific data.
-2. Replace hardcoded Jnapanam text and media with a server-managed arena settings contract. Include editable logo, favicon, arena name, accent colours, hero, description, languages, business contacts, legal and policy links.
-3. Configure domain, app package name, deep links, API base URL and Android signing separately per deployment.
-4. Add admin onboarding wizard: identity → branding → facilities/sports → slots/capacity → pricing/taxes → Razorpay → operators → review/publish.
-5. Retain configurable pricing, booking, operations, membership, training, tournaments, refunds, billing and checkout with regression tests.
-6. Make deployment templates for preview/staging/live. Each dedicated arena uses separate database and credentials.
+A new arena can choose **customer-hosted, PlayNexa-managed dedicated or multi-tenant SaaS**, and immediately receive the same complete sports **booking + payment + operations** product. Marketplace is postponed.
 
-## Phase 2: sales demonstration
-- Add a `DEMO_MODE` instance with 3 clearly fake arena profiles and realistic sports and slots.
-- Seed synthetic customers, bookings, payments and dashboard figures; allow safe one-click reset.
-- Disable actual OTP/SMS/email, payment capture, refunds and real notifications.
-- Permit switching arena brand only within demo; production branding must be authenticated and authorised.
-- Provide demo-ready customer, arena admin and operator flows.
+## Current baseline
 
-## Phase 3: multi-tenant SaaS (separately gated)
-- Introduce explicit tenant ID in all tenant-owned DB tables, foreign keys and unique constraints, audit logs and background jobs.
-- Resolve tenant from verified host-to-tenant registry, authenticate membership, enforce tenant scoping at service/repository layers; deny cross-tenant access.
-- Add tenant-scoped storage, encryption/secrets, quotas, payment webhooks and rate limits.
-- Run negative isolation tests, privilege escalation tests, property-based scoping tests and backup/restore exercises.
-- Add platform billing/subscriptions and a tenant lifecycle (trial, active, suspended) only after the isolation gate passes.
+- Jnapanam's Spring Boot/PostgreSQL backend, React web and Expo mobile source are imported in PlayNexa.
+- Dedicated instance branding can be edited from the arena admin screen.
+- Full product capability matrix, three hosting choices and go-live evidence contracts are defined; synthetic sales booking preview available.
+- A shared SaaS safety filter blocks non-health API routes to avoid unsafe cross-tenant use.
+- All underlying Jnapanam capabilities must be regression-tested; imported modules alone do not prove production readiness for a new customer.
 
-## Initial findings from source review
-- Backend: Spring Boot 4.1.1, Java 21; PostgreSQL/Flyway; Maven JaCoCo.
-- Web: React 19 / Next 16 / Vinext; current homepage hardcodes Jnapanam name, Holalkere copy, hero video and imagery.
-- Current PlayNexa workspace does not yet contain migrated backend/web/mobile source. CI and E2E cannot be claimed to pass until porting and validation.
+## Track A: dedicated deployment for either infrastructure owner
 
-## Acceptance criteria
-- A new arena can be branded, configured, deployed and demonstrated without editing application source.
-- No Jnapanam records, Razorpay secrets or production JWT keys appear in demos.
-- Existing Jnapanam deployment unchanged.
-- Test booking, cancellation, invoice, refund, operator check-in and customer login per arena, in both English and Kannada.
-- For multi-tenancy, assert zero cross-tenant access before any shared production deployment.
+1. Finish removal of Jnapanam-specific media, static text, PDF/notification templates, default icons, credentials, URLs and mobile links.
+2. Build a reusable provisioning flow: choose `customer_hosted` or `playnexa_managed_single_tenant`; create isolated DB/service, domain/DNS, TLS, storage and secret-manager references.
+3. Make branding, sports/facilities, schedules, taxes/pricing, merchant settings and operator setup configurable from admin UI.
+4. Run full booking/payment/refund/invoice/notification/check-in UAT, security and concurrency tests for every newly provisioned arena.
+5. Publish customer-specific Android builds only with unique signing/package/icon/deep-link scheme, or offer a safe universal app after API isolation.
+
+## Track B: multi-tenant SaaS — in parallel and essential to launch
+
+1. Create platform control plane for tenant lifecycle, verified host registry, organisation owner and arena staff memberships, signup and subscriptions.
+2. Add `arena_id` and tenant-owned composite foreign keys to all business tables. Migrate existing isolated databases cautiously; no real Jnapanam data copied into SaaS.
+3. Enforce tenant identity in Spring Security/JWT; deny unknown/suspended tenants; verify host mapping.
+4. Scope **every** repository query, transaction, batch job, webhook, refund, cache, media, email, PDF, audit and export. Add PostgreSQL RLS as a second defence.
+5. Tenant-owned Razorpay merchant settings and verified webhook mapping, tax identities, invoice numbering, payment/refund idempotency.
+6. Implement same customer/admin/operator UX and optional venue branding/domain on shared hosting.
+7. Run hostile cross-tenant tests, booking conflicts/race tests, end-to-end sandbox payment tests, restore drills and negative auth checks.
+8. Remove the shared SaaS HTTP safety gate **only after** the above tests are complete and approved.
+
+## Shared feature parity gate
+
+Both tracks must meet the same [full Jnapanam feature matrix](PRODUCT_MODES_AND_FEATURE_PARITY.md):
+booking slots/holds, checkout/payments, cancellation/partial refunds, memberships, coaching, tournaments, dynamic pricing, tax/GST, invoices, check-in/operations, notifications, commerce, loyalty, reporting, roles and mobile.
+
+## Deferred: PlayNexa marketplace
+
+No marketplace at launch. Do not integrate marketplace subscription fees, cross-arena booking, commission or automatic opt-in into tenant onboarding. Existing experimental directory code remains outside the launch path.
+
+## Release verification
+
+Use `npm test`, imported Spring Boot integration/security tests, web build, mobile type-check and an actual isolated staging Postgres + Razorpay sandbox. The pure-JS feature matrix is an entitlement contract, **not** a claim that all features pass UAT or that SaaS currently works.
