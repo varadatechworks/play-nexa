@@ -14,7 +14,7 @@ export function CatalogueImport({onComplete}:{onComplete:()=>Promise<void>}){
  const[rows,setRows]=useState<Row[]>([]);const[errors,setErrors]=useState<string[]>([]);const[busy,setBusy]=useState(false);const[message,setMessage]=useState("");
  const validation=useMemo(()=>rows.flatMap((r,i)=>validate(r,i+2)),[rows]);
  async function selectFile(e:ChangeEvent<HTMLInputElement>){const file=e.target.files?.[0];if(!file)return;const parsed=parseCsv(await file.text());setRows(parsed);setErrors([]);setMessage(parsed.length?`${parsed.length} row(s) ready for validation.`:"The CSV contains no data rows.")}
- function download(){const sample=[columns.join(","),"CRICKET,Cricket,,ACTIVE,BAT-001,English Willow Bat,,Professional bat,,,18,ACTIVE,30,BAT-001-SR,Standard,4500,10,5,ACTIVE"].join("\n");const url=URL.createObjectURL(new Blob([sample],{type:"text/csv"}));const a=document.createElement("a");a.href=url;a.download="jnapanam-catalogue-template.csv";a.click();URL.revokeObjectURL(url)}
+ function download(){const sample=[columns.join(","),"CRICKET,Cricket,,ACTIVE,BAT-001,English Willow Bat,,Professional bat,,,18,ACTIVE,30,BAT-001-SR,Standard,4500,10,5,ACTIVE"].join("\n");const url=URL.createObjectURL(new Blob([sample],{type:"text/csv"}));const a=document.createElement("a");a.href=url;a.download="arena-catalogue-template.csv";a.click();URL.revokeObjectURL(url)}
  async function run(){if(validation.length){setErrors(validation);return}setBusy(true);setErrors([]);setMessage("");try{
    const categories=await api<Category[]>("/api/v1/admin/commerce/categories");
    const products=await api<Product[]>("/api/v1/admin/commerce/products");

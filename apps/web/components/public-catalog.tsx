@@ -22,7 +22,7 @@ function useLive<T>(path:string){
  return {rows,loading,error,refresh};
 }
 function ErrorNotice({error,refresh}:{error:string;refresh:()=>Promise<void>}){return <div className={styles.error} role="alert">{error}<button type="button" onClick={()=>void refresh()}>Retry</button></div>;}
-function Empty({message}:{message:string}){return <div className={styles.empty}><strong>Updates will appear here</strong><p>{message}</p><Link href="/contact">Contact Jnapanam <ArrowRight size={15}/></Link></div>;}
+function Empty({message}:{message:string}){return <div className={styles.empty}><strong>Updates will appear here</strong><p>{message}</p><Link href="/contact">Contact the arena <ArrowRight size={15}/></Link></div>;}
 const dateFmt=(value:string)=>{const d=new Date(value);return Number.isNaN(d.getTime())?"Date to be confirmed":new Intl.DateTimeFormat("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",timeZone:"Asia/Kolkata"}).format(d)+" IST"};
 const safeLink=(url?:string)=>{if(!url)return "";try{const u=new URL(url);return u.protocol==="https:"||u.protocol==="http:"?u.href:""}catch{return ""}};
 const sportPhoto=(text:string)=>{const x=text.toLowerCase();for(const [key,file] of [["swim","swimming"],["cricket","cricket"],["badminton","badminton"],["carrom","carrom"],["chess","chess"],["gym","gym"],["aerobic","aerobics"]])if(x.includes(key))return "/images/sport-"+file+".png";return "/images/hero-sports.png";};
@@ -31,7 +31,7 @@ export function PublishedEvents(){
  const events=useMemo(()=>rows.filter(e=>e.status==="PUBLISHED").sort((a,b)=>a.startsAt.localeCompare(b.startsAt)),[rows]);
  const upcoming=events.filter(e=>new Date(e.endsAt).getTime()>=Date.now()),past=events.filter(e=>new Date(e.endsAt).getTime()<Date.now());
  return <section className="section"><div className="container">
-   <div className={styles.sectionHead}><div><span className="eyebrow">Published by Jnapanam</span><h2>Events & Camps</h2><p>Live event information, schedules and registration links.</p></div><button type="button" onClick={()=>void refresh()}>Refresh</button></div>
+   <div className={styles.sectionHead}><div><span className="eyebrow">Published by the arena</span><h2>Events & Camps</h2><p>Live event information, schedules and registration links.</p></div><button type="button" onClick={()=>void refresh()}>Refresh</button></div>
    {loading?<p role="status">Loading published events…</p>:error?<ErrorNotice error={error} refresh={refresh}/>:
    events.length===0?<Empty message="No events are published yet. Please check back for confirmed camps, workshops and competitions."/>:<>
      <div className={styles.eventGrid}>{upcoming.map(e=><article key={e.id} className={styles.eventCard}>
@@ -57,7 +57,7 @@ export function PublishedGallery(){
    gallery.length===0?<Empty message="No gallery photos have been published yet."/>:
    <div className={styles.galleryGrid}>{gallery.map(item=><figure key={item.id}>
     {item.mediaType==="VIDEO"?<video controls preload="metadata" playsInline poster={item.thumbnailUrl||undefined}><source src={item.mediaUrl}/></video>:<img src={item.mediaUrl} loading="lazy" alt={item.altText||item.title}/>}
-    <figcaption><span>{item.sportCode||"Jnapanam"}</span><strong>{item.title}</strong></figcaption></figure>)}</div>}
+    <figcaption><span>{item.sportCode||"Sports"}</span><strong>{item.title}</strong></figcaption></figure>)}</div>}
  </div></section>;
 }
 export function LiveSports(){
@@ -75,7 +75,7 @@ export function LiveSports(){
 export function LiveMemberships(){
  const {rows,loading,error,refresh}=useLive<Plan>("/api/v1/public/membership-plans");
  const plans=rows.filter(p=>p.status==="ACTIVE");
- return <section className="section"><div className="container"><div className={styles.sectionHead}><div><span className="eyebrow">Available membership plans</span><h2>Choose a Membership</h2><p>Published pricing and duration from the Jnapanam membership catalogue.</p></div><button onClick={()=>void refresh()}>Refresh</button></div>
+ return <section className="section"><div className="container"><div className={styles.sectionHead}><div><span className="eyebrow">Available membership plans</span><h2>Choose a Membership</h2><p>Published pricing and duration from the arena membership catalogue.</p></div><button onClick={()=>void refresh()}>Refresh</button></div>
  {loading?<p>Loading membership plans…</p>:error?<ErrorNotice error={error} refresh={refresh}/>:
  plans.length===0?<Empty message="No membership plans are active yet. Please contact our team for current options."/>:
  <div className={styles.planGrid}>{plans.map(p=><article key={p.id} className={styles.planCard}><span className={styles.category}>Membership plan</span><h3>{p.name}</h3><p>{p.description||"Membership access according to the active plan terms."}</p>

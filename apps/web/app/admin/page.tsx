@@ -57,7 +57,7 @@ function DashboardPanel({initial,go}:{initial:Row;go:(view:View)=>void}){
   {key:"netRevenuePaise",title:"Net revenue",route:"payments",hint:"Selected period"}
  ];
  return <section className="admin-dashboard-kpis" aria-label="Dashboard key performance indicators">
-  <header className="admin-kpi-heading"><div><span className="eyebrow">LIVE OPERATIONS</span><h2>Jnapanam at a glance</h2><p>Review current counts. The selected dates apply to bookings and revenue.</p></div></header>
+  <header className="admin-kpi-heading"><div><span className="eyebrow">LIVE OPERATIONS</span><h2>Arena at a glance</h2><p>Review current counts. The selected dates apply to bookings and revenue.</p></div></header>
   <div className="metric-grid">{tiles.map(tile=>{
    const raw=tile.key==="pendingPaymentOrders"||tile.key==="pendingDocuments"?tile.special:metrics[tile.key];
    const value=raw==null?"—":tile.key.endsWith("Paise")?adminMoney(raw):display(raw);
@@ -96,7 +96,7 @@ const needReview=rows.filter(row=>String(row.status)==="PAID"&&String(row.purpos
 return <>{bookingError&&<div className="form-error" role="alert">{bookingError}</div>}<div className="admin-list-toolbar"><div><strong>{rows.length}</strong><span>Payment orders</span></div></div>
 <p className="admin-payment-guide">An order marked CREATED is <strong>not proof of payment</strong>.
 Confirm the transaction status in Razorpay Live Mode → Transactions → Payments.
-If Razorpay shows Captured but Jnapanam does not show PAID, investigate before reopening or reselling the slot.</p>
+If Razorpay shows Captured but the arena does not show PAID, investigate before reopening or reselling the slot.</p>
 {needReview.length>0&&<div className="form-error" role="alert">
  <strong>Payment reconciliation required:</strong> {needReview.length} paid booking order(s)
  link to expired or cancelled bookings. Check Razorpay and the booking before any further sale or refund.

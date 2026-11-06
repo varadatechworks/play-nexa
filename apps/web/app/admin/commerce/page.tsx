@@ -96,7 +96,7 @@ export default function CommerceAdminPage(){
         <Field label="Kannada hero title"><input value={settings.heroTitleKn||""} onChange={e=>setSettings({...settings,heroTitleKn:e.target.value})}/></Field>
         <Field label="Hero subtitle"><input value={settings.heroSubtitle||""} onChange={e=>setSettings({...settings,heroSubtitle:e.target.value})}/></Field>
         <Field label="Kannada hero subtitle"><input value={settings.heroSubtitleKn||""} onChange={e=>setSettings({...settings,heroSubtitleKn:e.target.value})}/></Field>
-        <Field label="Logo URL"><input value={settings.logoUrl||""} onChange={e=>setSettings({...settings,logoUrl:e.target.value})} placeholder="/images/jnapanam-logo.png"/></Field>
+        <Field label="Logo URL"><input value={settings.logoUrl||""} onChange={e=>setSettings({...settings,logoUrl:e.target.value})} placeholder="https://cdn.example.com/arena-logo.png"/></Field>
         <Field label="Upload logo image"><input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={e=>uploadLogo(e.target.files?.[0])}/>{settings.logoUrl&&<img className={styles.logoPreview} src={settings.logoUrl} alt="Shop logo preview"/>}</Field>
       </Section>
       <Section title="Theme colours">
