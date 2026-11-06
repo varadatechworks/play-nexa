@@ -25,4 +25,4 @@ jobs:
           cache: maven
           cache-dependency-path: apps/backend/pom.xml
       - name: Test public and admin branding contracts
-        run: mvn -q -f apps/backend/pom.xml -Dtest=PublicArenaBrandingControllerTest test
+        run: mvn -q -f apps/backend/pom.xml -Dtest=PublicArenaBrandingControllerTest,SharedHostingSafetyGateFilterTest test
