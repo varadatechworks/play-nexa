@@ -109,3 +109,8 @@ test("new customer domains remain unverified and cannot route",()=>{
 test("marketplace host cannot collide with an arena's custom domain",()=>{
   assert.throws(()=>resolveArenaHost("riverside.playnexa.example",demoArenas,["riverside.playnexa.example"]),/Marketplace domain/);
 });
+
+test("public directory never exposes an unverified booking redirect",()=>{
+  const unsafe={...demoArenas[0],bookingBaseUrl:"https://unknown.example.org/book"};
+  assert.equal(publicArena(unsafe).bookingBaseUrl,null);
+});
