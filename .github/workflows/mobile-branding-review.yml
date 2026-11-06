@@ -1,0 +1,33 @@
+name: PlayNexa branded Android config check
+on:
+  pull_request:
+    paths:
+      - 'apps/mobile/app.config.js'
+      - 'apps/mobile/src/constants/brand.ts'
+      - 'apps/mobile/src/components/mobile-header.tsx'
+      - 'apps/mobile/src/app/index.tsx'
+      - 'apps/mobile/src/i18n/**'
+      - '.github/workflows/mobile-branding-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-branding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify app config does not include imported Jnapanam icon
+        run: |
+          node --check apps/mobile/app.config.js
+          node -e 'const assert=require("node:assert/strict");const config=require("./apps/mobile/app.config.js").expo;assert.equal(config.name,"PlayNexa Arena");assert.equal(config.icon,undefined);assert.equal(config.android.package,"com.varadatechworks.playnexa.demo");'
+      - name: Type-check mobile branding
+        working-directory: apps/mobile
+        run: |
+          npm ci --no-audit --no-fund
+          npx tsc --noEmit
