@@ -13,7 +13,6 @@ const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const COLOR = /^#[0-9a-fA-F]{6}$/;
 const SPORT_CODE = /^[A-Z][A-Z0-9_]{1,30}$/;
 const SAFE_HOST = /^(?=.{1,253}$)[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/;
-const own = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
 
 export function slugify(value) {
   return String(value || "").normalize("NFKD").toLowerCase()
@@ -85,7 +84,7 @@ export function buildArenaDraft(input = {}) {
     schemaVersion: 1, id: "arena-" + slug, slug, name,
     tagline: typeof input.tagline === "string" ? input.tagline.trim().slice(0, 150) : "Play • Train • Compete",
     city, state: input.state || "Karnataka", country: input.country || "IN",
-    hostingMode, marketplaceListed: listed, status: "draft", domains, brand, sports,
+    hostingMode, marketplaceListed: listed, status: "draft", domains, verifiedDomains: [], brand, sports,
     bookingBaseUrl: publicWebUrl(input.bookingBaseUrl, "booking URL"),
     contact, features: { booking: true, membership: true, coaching: true, tournaments: true },
     currency: "INR", timezone: "Asia/Kolkata"
@@ -102,8 +101,13 @@ export function validateRegistry(arenas) {
       throw new Error("Invalid arena record");
     if (ids.has(arena.id) || slugs.has(arena.slug)) throw new Error("Duplicate arena ID or slug");
     ids.add(arena.id); slugs.add(arena.slug);
-    for (const domain of (arena.domains || [])) {
-      const host = normalizeHost(domain);
+    const configured = (arena.domains || []).map(normalizeHost);
+    const verified = (arena.verifiedDomains || []).map(normalizeHost);
+    if (new Set(configured).size !== configured.length || new Set(verified).size !== verified.length)
+      throw new Error("Duplicate arena domains");
+    if (verified.some(host => !configured.includes(host)))
+      throw new Error("Verified domain must be a configured arena domain");
+    for (const host of configured) {
       if (domains.has(host)) throw new Error("Domain already owned by another arena: " + host);
       domains.set(host, arena.id);
     }
@@ -116,8 +120,10 @@ export function resolveArenaHost(hostHeader, arenas, marketplaceHosts = []) {
   validateRegistry(arenas);
   const host = normalizeHost(hostHeader);
   const marketplace = marketplaceHosts.map(normalizeHost);
+  if (marketplace.includes(host) && arenas.some(a => (a.domains || []).includes(host)))
+    throw new Error("Marketplace domain cannot be assigned to an arena");
   if (marketplace.includes(host)) return { kind: "marketplace", host };
-  const arena = arenas.find(a => (a.domains || []).includes(host));
+  const arena = arenas.find(a => (a.verifiedDomains || []).includes(host));
   if (!arena || arena.status !== "published") return { kind: "unknown", host };
   return { kind: "arena", host, arenaId: arena.id, hostingMode: arena.hostingMode };
 }
@@ -150,9 +156,13 @@ export function marketplaceSearch(arenas, { city = "", sport = "", query = "" } 
 /** Marketplace sends customers to the authoritative booking service. */
 export function bookingHandoff(arena, { channel = "marketplace" } = {}) {
   if (arena.status !== "published" || !arena.bookingBaseUrl) return null;
+  if (channel === "marketplace" && !arena.marketplaceListed) return null;
   const target = new URL(arena.bookingBaseUrl);
   if (target.protocol !== "https:" || target.username || target.password)
     throw new Error("Unsafe booking URL");
+  if (!(arena.verifiedDomains || []).includes(normalizeHost(target.hostname)))
+    return null; // No handoff to an unverified or attacker-controlled booking domain.
+
   target.searchParams.set("source", channel === "marketplace" ? "playnexa" : "direct");
   return target.toString();
 }
