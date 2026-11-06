@@ -1,55 +1,80 @@
 {
   "schemaVersion": 1,
-  "arenaId": "demo-riverside",
-  "displayName": "Riverside Sports Arena",
+  "id": "arena-demo-riverside",
+  "slug": "demo-riverside",
+  "name": "Riverside Sports Arena",
   "tagline": "Your game starts here",
-  "branding": {
-    "primaryColor": "#153a50",
-    "accentColor": "#f2ad48",
+  "city": "Bengaluru",
+  "state": "Karnataka",
+  "country": "IN",
+  "hostingMode": "dedicated",
+  "deploymentOption": "playnexa_managed_single_tenant",
+  "status": "draft",
+  "marketplaceListed": false,
+  "domains": [],
+  "verifiedDomains": [],
+  "brand": {
+    "primary": "#153a50",
+    "accent": "#f2ad48",
     "logoUrl": null,
-    "heroImageUrl": null,
-    "faviconUrl": null
-  },
-  "contact": {
-    "email": "hello@example.invalid",
-    "phone": "+91 9000000000",
-    "address": "Demo city, Karnataka"
-  },
-  "locale": {
-    "default": "en",
-    "supported": [
-      "en",
-      "kn"
-    ],
-    "timeZone": "Asia/Kolkata",
-    "currency": "INR"
-  },
-  "features": {
-    "booking": true,
-    "memberships": true,
-    "coaching": true,
-    "tournaments": true,
-    "shop": false
+    "heroUrl": null
   },
   "sports": [
     {
       "code": "BADMINTON",
-      "name": "Badminton",
-      "courts": 3,
-      "startingPriceInr": 350
+      "name": "Badminton"
     },
     {
       "code": "SWIMMING",
-      "name": "Swimming",
-      "courts": 1,
-      "startingPriceInr": 200
+      "name": "Swimming"
     },
     {
       "code": "CRICKET",
-      "name": "Cricket Turf",
-      "courts": 1,
-      "startingPriceInr": 900
+      "name": "Cricket Turf"
     }
   ],
-  "demoMode": true
+  "bookingBaseUrl": null,
+  "contact": {
+    "email": "hello@example.invalid",
+    "phone": "+91 9000000000"
+  },
+  "capabilities": {
+    "sports_catalog": true,
+    "courts_and_facilities": true,
+    "availability_and_schedules": true,
+    "capacity_and_slot_rules": true,
+    "customer_online_booking": true,
+    "booking_holds": true,
+    "pricing_and_quotes": true,
+    "online_payments": true,
+    "payment_verification": true,
+    "cancellations": true,
+    "partial_and_full_refunds": true,
+    "memberships_and_subscriptions": true,
+    "coaching_and_training": true,
+    "tournaments": true,
+    "dynamic_pricing": true,
+    "offers_and_coupons": true,
+    "gst_and_tax_rules": true,
+    "invoices_and_credit_notes": true,
+    "commerce_shop_and_inventory": true,
+    "loyalty": true,
+    "customer_profile_and_portal": true,
+    "role_based_staff_operations": true,
+    "qr_check_in": true,
+    "email_and_sms_notifications": true,
+    "reporting_and_analytics": true,
+    "audit_and_error_logs": true,
+    "mobile_app_support": true,
+    "english_kannada_support": true,
+    "security_and_authentication": true
+  },
+  "features": {
+    "booking": true,
+    "membership": true,
+    "coaching": true,
+    "tournaments": true
+  },
+  "currency": "INR",
+  "timezone": "Asia/Kolkata"
 }
