@@ -14,6 +14,7 @@ export type AdminModule={
 export const adminAreas:AdminArea[]=["Overview","Arena","Finance & commerce","Operations & people","System"];
 export const adminModules:AdminModule[]=[
  {id:"dashboard",label:"Dashboard",href:"/admin",area:"Overview",description:"Review arena activity, bookings and revenue."},
+ {id:"arena-branding",label:"Branding & identity",href:"/admin/arena-branding",area:"Arena",description:"Set arena name, colours, logo, location and homepage content without a code change.",featured:true},
  {id:"bookings",label:"Bookings",href:"/admin/bookings",area:"Arena",description:"Manage reservations, statuses and check-in records."},
  {id:"sports",label:"Sports",href:"/admin?view=sports",area:"Arena",description:"Add and manage active sports."},
  {id:"facilities",label:"Facilities",href:"/admin?view=facilities",area:"Arena",description:"Manage courts, facilities and their schedules."},
