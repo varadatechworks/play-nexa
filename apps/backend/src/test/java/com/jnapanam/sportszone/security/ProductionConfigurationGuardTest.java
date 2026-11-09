@@ -73,4 +73,10 @@ class ProductionConfigurationGuardTest {
         assertThrows(IllegalStateException.class,
                 ()->new ProductionConfigurationGuard(environment).validate());
     }
+    @Test void environmentPostProcessorRejectsUnsafeConfigurationBeforeStartup() {
+        var env=new MockEnvironment().withProperty("APP_ENV","production");
+        assertThrows(IllegalStateException.class,
+                ()->new ProductionEnvironmentPostProcessor().postProcessEnvironment(env,null));
+    }
 }
+
