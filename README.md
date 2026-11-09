@@ -56,6 +56,7 @@ Shared SaaS environment generation remains intentionally blocked until tenant is
 npm test
 npm run branding:audit
 npm run audit:routes
+npm run audit:api
 bash scripts/migrate-playnexa.sh plan
 ```
 
@@ -89,3 +90,7 @@ and [maintenance/UAT/KT guidance](docs/architecture-kt/OPERATIONS_KT_UAT.md).
 The Node static audit inventories customer/admin/mobile source files; **it does not claim every route has passed visual or role-based browser/device UAT**. The imported full-featured booking system still requires a real staging database, sandbox payments/refunds, operator workflows and cross-tenant isolation before selling multi-tenant SaaS.
 
 Production setup requires `APP_ENV=production` (or an active Spring production profile), complete per-arena secret configuration and a production HTTPS API origin. Dedicated customer-hosted and PlayNexa-managed single-tenant instances retain full feature parity.
+
+## Authentication and API regression handover
+
+The [authentication and API status test matrix](docs/architecture-kt/AUTH_AND_API_TEST_MATRIX.md) documents the corrected MFA state machine, refresh/session recovery, role-level HTTP responses, and booking/payment/refund negative cases. `npm run audit:api -- --json` provides a **read-only Java mapping inventory** for reconciling controller annotations against staging OpenAPI and Spring authorization; it is not live API validation.
