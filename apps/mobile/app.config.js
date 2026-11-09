@@ -16,7 +16,8 @@ const packageId = process.env.ARENA_ANDROID_PACKAGE || "com.varadatechworks.play
 const scheme = process.env.ARENA_APP_SCHEME || "playnexa";
 const icon = process.env.ARENA_APP_ICON_PATH || undefined;
 const city = process.env.ARENA_APP_CITY || "Bengaluru";
-const isRelease = process.env.PLAYNEXA_BRANDED_RELEASE === "true";
+const isRelease = process.env.PLAYNEXA_BRANDED_RELEASE === "true" ||
+  ["production","prod","release"].includes((process.env.EAS_BUILD_PROFILE || "").toLowerCase());
 
 if (isRelease && (!process.env.ARENA_ANDROID_PACKAGE ||
     !process.env.ARENA_APP_ICON_PATH || !process.env.ARENA_APP_SCHEME)) {

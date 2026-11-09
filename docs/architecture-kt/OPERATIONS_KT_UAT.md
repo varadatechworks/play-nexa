@@ -67,3 +67,7 @@ Provide immutable release SHA, CI results, environment/topology sheet with secre
 ## 7. Release decision
 
 No launch approval should be issued based solely on unit-test passes, imported source, static diagrams or synthetic demo screens. Production sign-off requires a successful dedicated/tenant-scoped booking → payment → invoice → check-in → refund flow, role and race-condition tests, tested recovery and reviewed operational handover.
+
+## Login/MFA and API response rehearsal
+
+Use [AUTH_AND_API_TEST_MATRIX.md](AUTH_AND_API_TEST_MATRIX.md) and `npm run audit:api` to review server-defined 401 `MFA_REQUIRED`, incorrect-password UI behavior, user-session refresh, role-based 403 denial and consistent HTTP status messages. Confirm six-digit MFA remains available for invalid-code retries but disappears if the login identifier or password changes. Inspect backend records and correlation IDs when testing payment and booking failures.

@@ -9,10 +9,10 @@ export const API_BASE_URL = (configuredApiUrl ||
 export type TokenResponse = { tokenType: string; accessToken: string; accessTokenExpiresAt: string; refreshToken: string };
 export type User = { id: string; fullName: string; displayName?: string; profilePhotoUrl?: string; email: string; mobile?: string; addressLine?: string; city?: string; state?: string; postalCode?: string; status: string; roles: string[]; requiresUpfrontPayment: boolean };
 
-const REFRESH_KEY = "jnapanam.refresh-token";
+const REFRESH_KEY = "playnexa.refresh-token";
 let accessToken: string | null = null;
 let refreshPromise: Promise<string | null> | null = null;
-const SESSION_EXPIRED_EVENT = "jnapanam:session-expired";
+const SESSION_EXPIRED_EVENT = "playnexa:session-expired";
 let sessionExpiryPublished = false;
 /** End an invalid session once across all protected pages and file downloads. */
 function expireSession() {

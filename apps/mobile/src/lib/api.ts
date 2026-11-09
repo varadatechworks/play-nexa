@@ -98,15 +98,17 @@ export async function api<T>(path:string,options:RequestInit={}):Promise<T>{
       ...(Platform.OS==='android'?{'X-Jnapanam-Platform':'android','X-Jnapanam-Version-Code':String(installedAndroidBuild())}:{}),
       ...geoHeaders,...(options.headers as Record<string,string>||{})
     };
+    if(publicAuth){for(const key of Object.keys(headers))if(key.toLowerCase()==='authorization')delete headers[key];}
     try{return await fetch(API_URL+path,{...options,headers});}
     catch{throw new ApiError(friendly('network'),0);}
   };
   const sentToken=accessToken;
+  let lastAttemptedToken=sentToken;
   let response=await request(sentToken);
   if(response.status===401 && !publicAuth){
     const renewed=accessToken&&accessToken!==sentToken
       ? accessToken : await refreshAccessToken();
-    if(renewed)response=await request(renewed);
+    if(renewed){lastAttemptedToken=renewed;response=await request(renewed);}
   }
   if(!response.ok){
     const status=response.status;
@@ -123,6 +125,7 @@ export async function api<T>(path:string,options:RequestInit={}):Promise<T>{
         throw new ApiError('Invalid email/mobile or password. Please try again.',401,'INVALID_CREDENTIALS');
       }
       if(publicAuth)throw new ApiError('We could not verify these details. Please try again.',401);
+      if(lastAttemptedToken && accessToken===lastAttemptedToken){accessToken=null;await removeStoredValue(REFRESH_TOKEN_KEY);sessionExpiredHandler?.();}
       throw new ApiError(friendly('session'),401);
     }
     if(status===403)throw new ApiError('You do not have permission to perform this action.',403);

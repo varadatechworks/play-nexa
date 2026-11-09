@@ -8,6 +8,9 @@ on:
       - 'tests/**'
       - 'package.json'
       - 'apps/web/**'
+      - 'apps/mobile/app.config.js'
+      - 'apps/mobile/src/app/login.tsx'
+      - 'apps/mobile/src/lib/api.ts'
       - '.github/workflows/platform-contracts.yml'
   workflow_dispatch:
 
@@ -23,6 +26,8 @@ jobs:
         with:
           node-version: '22'
       - run: npm test
+      - name: API controller inventory (source-only)
+        run: npm run audit:api
       - name: Report remaining legacy arena branding references
         run: npm run branding:audit
 
