@@ -18,7 +18,7 @@ export type User = {
 };
 const defaultHost=Platform.OS==='android'?'10.0.2.2':'localhost';
 export const API_URL=(process.env.EXPO_PUBLIC_API_URL||'http://'+defaultHost+':8080').replace(/\/$/,'');
-export const REFRESH_TOKEN_KEY = 'jnapanam.refreshToken';
+export const REFRESH_TOKEN_KEY = 'playnexa.refreshToken';
 let accessToken:string|null=null;
 let refreshInFlight:Promise<string|null>|null=null;
 let sessionExpiredHandler:(()=>void)|null=null;
@@ -126,7 +126,9 @@ export async function api<T>(path:string,options:RequestInit={}):Promise<T>{
     }
     if(status===403)throw new ApiError('You do not have permission to perform this action.',403);
     if(status===404)throw new ApiError('The requested information could not be found. Please refresh and try again.',404);
-    if(status===408||status===504)throw new ApiError('The request took too long. Please try again.',status);
+    if(status===408||status===504)throw new ApiError('The request took too long. Please try again.'+supportRef,status);
+    if(status===413)throw new ApiError('This file is too large. Please choose a smaller file and try again.',413);
+    if(status===503)throw new ApiError('The arena service is temporarily unavailable or undergoing maintenance. Please try again shortly.'+supportRef,503);
     if(status===429)throw new ApiError('Too many attempts. Please wait a moment and try again.',429);
     if(status>=500)throw new ApiError(friendly('server')+supportRef,status);
     let message='Please check your details and try again.';
