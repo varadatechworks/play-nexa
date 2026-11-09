@@ -18,15 +18,15 @@ export function AppProvider({children}:{children:React.ReactNode}) {
       expired=true;setUser(null);setReady(true);
       router.replace("/login?reason=session-expired");
     };
-    window.addEventListener("jnapanam:session-expired",onExpired);
-    const saved=localStorage.getItem("jnapanam.language") as Language|null;
+    window.addEventListener("playnexa:session-expired",onExpired);
+    const saved=localStorage.getItem("playnexa.language") as Language|null;
     if(saved==="kn"||saved==="en")setLanguageState(saved);
     restoreSession().then(profile=>{if(!expired)setUser(profile);})
       .catch(()=>{/* Network/server failures preserve stored credentials. */})
       .finally(()=>setReady(true));
-    return ()=>window.removeEventListener("jnapanam:session-expired",onExpired);
+    return ()=>window.removeEventListener("playnexa:session-expired",onExpired);
   },[router]);
-  const setLanguage=(value:Language)=>{setLanguageState(value);localStorage.setItem("jnapanam.language",value)};
+  const setLanguage=(value:Language)=>{setLanguageState(value);localStorage.setItem("playnexa.language",value)};
   const value=useMemo(()=>({language,setLanguage,t:(key:TranslationKey)=>translate(language,key),user,setUser,ready,signOut:async()=>{await apiLogout();setUser(null)}}),[language,user,ready]);
   return <Context.Provider value={value}><DocumentLanguage language={language}/>{children}</Context.Provider>;
 }
