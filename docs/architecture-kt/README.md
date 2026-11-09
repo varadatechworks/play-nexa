@@ -1,3 +1,9 @@
+## Latest: source-level 59-page review and security fixes
+
+- [2026-11-10 review — complete page-source scan, specific fixes, API status/security matrix and UAT evidence gates](SOURCE_REVIEW_2026-11-10.md)
+- [Extended ER models: memberships, coaching, tournaments, loyalty and audit](ER_EXTENDED_MODULES.md)
+- [Read-only PostgreSQL schema and Flyway history exporter](../../scripts/schema-export-playnexa.sh)
+
 ## Updated PlayNexa review and handover — 10 November 2026
 
 The documents below extend the earlier source-derived schema index with **full booking and payment logical ER views, deployment modes, safe migration tooling, error/log policy and UAT/KT guidance**. All diagrams use editable Mermaid source.
