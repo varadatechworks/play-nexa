@@ -17,3 +17,6 @@ coverage/
 
 # Locally generated tenant configuration drafts
 config/tenants/
+
+# Read-only local database schema and Flyway metadata exports
+schema-export/
