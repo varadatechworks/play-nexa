@@ -10,7 +10,8 @@ test("web transport safely classifies auth, permission, missing data, conflict, 
  assert.match(api,/status>=500/);
  assert.match(api,/Reference: /);
  assert.match(api,/fetchSafe/);
- assert.match(api,/MFA code sent/);
+ assert.match(api,/body\?\.code==="MFA_REQUIRED"/);
+ assert.match(api,/INVALID_CREDENTIALS/);
  assert.match(api,/apiResponseError\(response,path\)/);
 });
 test("admin error screen and navigation use dedicated authenticated API",async()=>{
