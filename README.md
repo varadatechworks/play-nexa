@@ -89,3 +89,7 @@ and [maintenance/UAT/KT guidance](docs/architecture-kt/OPERATIONS_KT_UAT.md).
 The Node static audit inventories customer/admin/mobile source files; **it does not claim every route has passed visual or role-based browser/device UAT**. The imported full-featured booking system still requires a real staging database, sandbox payments/refunds, operator workflows and cross-tenant isolation before selling multi-tenant SaaS.
 
 Production setup requires `APP_ENV=production` (or an active Spring production profile), complete per-arena secret configuration and a production HTTPS API origin. Dedicated customer-hosted and PlayNexa-managed single-tenant instances retain full feature parity.
+
+## 2026-11-10 UI, audit and technical handover updates
+
+A [second-pass source inspection](docs/architecture-kt/SOURCE_REVIEW_2026-11-10.md) covers all **39 web pages and 20 Expo mobile screens** at source level. Corrected false MFA prompts, safe 4xx/5xx classification, spoof-resistant audit metadata, an explicit production dedicated-mode gate, venue-branded welcome notifications, and packaging metadata. Added [extended ER models](docs/architecture-kt/ER_EXTENDED_MODULES.md) plus a [read-only schema exporter](scripts/schema-export-playnexa.sh). These commits do **not** certify browser UAT, PostgreSQL migration execution, live gateway reconciliation, shared SaaS or marketplace availability.
