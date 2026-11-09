@@ -12,6 +12,7 @@
     "demo": "node scripts/demo-server.mjs",
     "arena:new": "node scripts/new-arena.mjs",
     "arena:env": "node scripts/render-arena-env.mjs",
-    "branding:audit": "node scripts/white-label-audit.mjs"
+    "branding:audit": "node scripts/white-label-audit.mjs",
+    "audit:routes": "node scripts/route-audit.mjs"
   }
 }
