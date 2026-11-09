@@ -68,7 +68,9 @@ class MfaServiceTest {
                 Map.of("enabled", true, "challenge_hash", "oldhash",
                         "challenge_expires_at", Timestamp.from(Instant.now().plusSeconds(300)))));
         when(mail.send(any(Notification.class))).thenThrow(new IllegalStateException("SMTP unavailable"));
-        assertThrows(IllegalStateException.class, () -> service.verifyOrChallenge(admin, ""));
+        var error=assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> service.verifyOrChallenge(admin, ""));
+        assertEquals(503,error.getStatusCode().value());
+        assertFalse(error.getReason().contains("SMTP"));
         verify(jdbc, never()).update(startsWith("update privileged_mfa set challenge_hash="),
                 any(), any(), any());
     }

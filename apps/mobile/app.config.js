@@ -16,8 +16,6 @@ const packageId = process.env.ARENA_ANDROID_PACKAGE || "com.varadatechworks.play
 const scheme = process.env.ARENA_APP_SCHEME || "playnexa";
 const icon = process.env.ARENA_APP_ICON_PATH || undefined;
 const city = process.env.ARENA_APP_CITY || "Bengaluru";
-// Guard normal EAS production profiles even if the caller forgets to set
-// PLAYNEXA_BRANDED_RELEASE. Local Gradle release builds must still set it.
 const isRelease = process.env.PLAYNEXA_BRANDED_RELEASE === "true" ||
   ["production","prod","release"].includes((process.env.EAS_BUILD_PROFILE || "").toLowerCase());
 

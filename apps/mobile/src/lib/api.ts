@@ -98,13 +98,7 @@ export async function api<T>(path:string,options:RequestInit={}):Promise<T>{
       ...(Platform.OS==='android'?{'X-Jnapanam-Platform':'android','X-Jnapanam-Version-Code':String(installedAndroidBuild())}:{}),
       ...geoHeaders,...(options.headers as Record<string,string>||{})
     };
-    // An explicit caller header must not smuggle stale credentials into login,
-    // registration, OTP, password reset or refresh requests.
-    if(publicAuth) {
-      for(const key of Object.keys(headers)){
-        if(key.toLowerCase()==='authorization')delete headers[key];
-      }
-    }
+    if(publicAuth){for(const key of Object.keys(headers))if(key.toLowerCase()==='authorization')delete headers[key];}
     try{return await fetch(API_URL+path,{...options,headers});}
     catch{throw new ApiError(friendly('network'),0);}
   };
@@ -124,20 +118,14 @@ export async function api<T>(path:string,options:RequestInit={}):Promise<T>{
     if(status===401){
       if(publicAuth&&path==='/api/v1/auth/login'){
         const detail=await response.json().catch(()=>null);
-        const message=detail?.detail||detail?.message;
+        // Only an explicit server-side MFA challenge authorizes the OTP field.
+        // Incorrect credentials must never be interpreted as an MFA prompt.
         if(detail?.code==='MFA_REQUIRED')
-          throw new ApiError('MFA code sent to your registered email. Enter the 6-digit verification code.',401,'MFA_REQUIRED');
-        throw new ApiError('Invalid login details. Check your password and try again.',401,'INVALID_CREDENTIALS');
+          throw new ApiError('Verification required. Enter the code sent to your registered email.',401,'MFA_REQUIRED');
+        throw new ApiError('Invalid email/mobile or password. Please try again.',401,'INVALID_CREDENTIALS');
       }
       if(publicAuth)throw new ApiError('We could not verify these details. Please try again.',401);
-      // A second 401 after successful refresh means the new access token was
-      // rejected too. Avoid looping forever or keeping a misleading signed-in UI.
-      // Only revoke if no concurrent request replaced our attempted token.
-      if(lastAttemptedToken && accessToken===lastAttemptedToken){
-        accessToken=null;
-        await removeStoredValue(REFRESH_TOKEN_KEY);
-        sessionExpiredHandler?.();
-      }
+      if(lastAttemptedToken && accessToken===lastAttemptedToken){accessToken=null;await removeStoredValue(REFRESH_TOKEN_KEY);sessionExpiredHandler?.();}
       throw new ApiError(friendly('session'),401);
     }
     if(status===403)throw new ApiError('You do not have permission to perform this action.',403);

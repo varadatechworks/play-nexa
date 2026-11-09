@@ -41,7 +41,7 @@ class TransactionalNotificationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].channel", everyItem(is("IN_APP"))))
                 .andExpect(jsonPath("$[*].category", hasItem("ACCOUNT")))
-                .andExpect(jsonPath("$[*].subject", hasItem("Welcome to Jnapanam Sports Zone")));
+                .andExpect(jsonPath("$[*].subject", hasItem("Welcome to PlayNexa Sports Arena")));
 
         mvc.perform(post("/api/v1/auth/password/forgot")
                         .contentType(MediaType.APPLICATION_JSON)

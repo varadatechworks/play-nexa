@@ -57,8 +57,10 @@ public class ProductionConfigurationGuard {
             int minutes=Integer.parseInt(access);
             if(minutes<1 || minutes>60) missing.add("JWT_ACCESS_MINUTES must be between 1 and 60");
         } catch(NumberFormatException ex) { missing.add("JWT_ACCESS_MINUTES must be numeric"); }
-        if (!"dedicated".equalsIgnoreCase(value("PLAYNEXA_HOSTING_MODE","dedicated")))
-            missing.add("Shared SaaS remains blocked until tenant isolation is certified");
+        // An absent hosting-mode variable cannot silently opt a production
+        // deployment into an imported single-arena database.
+        if (!"dedicated".equalsIgnoreCase(value("PLAYNEXA_HOSTING_MODE","")))
+            missing.add("PLAYNEXA_HOSTING_MODE must be explicitly dedicated; Shared SaaS remains blocked until tenant isolation is certified");
         if(!missing.isEmpty())throw new IllegalStateException(
                 "Unsafe production configuration: "+String.join("; ",missing)
                 +". No secrets were logged.");

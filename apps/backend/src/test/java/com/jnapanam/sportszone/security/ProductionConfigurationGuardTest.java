@@ -57,6 +57,15 @@ class ProductionConfigurationGuardTest {
         assertTrue(message.contains("JWT_ACCESS_MINUTES"));
     }
 
+    @Test void productionNeverDefaultsSilentlyToDedicatedHosting() {
+        var environment=secureProduction()
+                .withProperty("PLAYNEXA_HOSTING_MODE","");
+        var message=assertThrows(IllegalStateException.class,
+                ()->new ProductionConfigurationGuard(environment).validate()).getMessage();
+        assertTrue(message.contains("PLAYNEXA_HOSTING_MODE"));
+        assertTrue(message.contains("Shared SaaS"));
+    }
+
     @Test void rejectsSharedModeAndHttpOrLocalhostCors() {
         var environment=secureProduction()
                 .withProperty("PLAYNEXA_HOSTING_MODE","saas")

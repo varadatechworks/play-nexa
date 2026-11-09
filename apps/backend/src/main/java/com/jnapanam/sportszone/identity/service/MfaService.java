@@ -89,9 +89,19 @@ public class MfaService {
         // notification is not sufficient: this endpoint has no authenticated dispatcher.
         // If SMTP fails, do not persist an unusable challenge or claim the code was sent.
         Notification email = new Notification(user, NotificationChannel.EMAIL, "SECURITY",
-                "Jnapanam sign-in verification code",
+                "Your arena sign-in verification code",
                 "Your verification code is " + code + ". It expires in 10 minutes.");
-        if (!localConsoleMfa) providers.provider(NotificationChannel.EMAIL).send(email);
+        if (!localConsoleMfa) {
+            try {
+                providers.provider(NotificationChannel.EMAIL).send(email);
+            } catch (Exception providerFailure) {
+                // Never claim that a code was delivered, or leak SMTP credentials
+                // through a 500. The transaction rolls back any new MFA row.
+                throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+                    "Verification email is temporarily unavailable. Please try again.");
+            }
+        }
         jdbc.update("update privileged_mfa set challenge_hash=?,challenge_expires_at=?,updated_at=now() where user_id=?",
                 hash, Timestamp.from(Instant.now().plusSeconds(600)), user.getId());
         if (localConsoleMfa) System.out.println("[LOCAL TEST ONLY] MFA code for " + user.getEmail() + ": " + code);
