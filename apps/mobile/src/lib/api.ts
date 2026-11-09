@@ -25,7 +25,7 @@ let sessionExpiredHandler:(()=>void)|null=null;
 export function setAccessToken(token:string|null){accessToken=token;}
 export function onSessionExpired(handler:(()=>void)|null){sessionExpiredHandler=handler;}
 export class ApiError extends Error {
-  constructor(message:string,public status:number){super(message);this.name='ApiError';}
+  constructor(message:string,public status:number,public code?:string){super(message);this.name='ApiError';}
 }
 const friendly=(key:'network'|'timeout'|'server'|'session'|'generic')=>i18n.t('errors.'+key);
 const technical=/socketexception|fetch failed|network request failed|software caused connection abort|stacktrace|java\.|exception:|connection refused|read timed out|unexpected token/i;
@@ -116,10 +116,11 @@ export async function api<T>(path:string,options:RequestInit={}):Promise<T>{
     if(status===401){
       if(publicAuth&&path==='/api/v1/auth/login'){
         const detail=await response.json().catch(()=>null);
-        const message=detail?.detail||detail?.message;
-        if(typeof message==='string'&&message.includes('MFA code sent'))
-          throw new ApiError('MFA code sent to your registered email. Enter the 6-digit verification code.',401);
-        throw new ApiError('Invalid login details or verification code. Please try again.',401);
+        // Only an explicit server-side MFA challenge authorizes the OTP field.
+        // Incorrect credentials must never be interpreted as an MFA prompt.
+        if(detail?.code==='MFA_REQUIRED')
+          throw new ApiError('Verification required. Enter the code sent to your registered email.',401,'MFA_REQUIRED');
+        throw new ApiError('Invalid email/mobile or password. Please try again.',401,'INVALID_CREDENTIALS');
       }
       if(publicAuth)throw new ApiError('We could not verify these details. Please try again.',401);
       throw new ApiError(friendly('session'),401);
