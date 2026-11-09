@@ -70,12 +70,14 @@ public class AdminAuditFilter extends OncePerRequestFilter {
 
     private static String headerOrNew(HttpServletRequest request, String name) {
         String value = request.getHeader(name);
-        return value == null || value.isBlank() ? UUID.randomUUID().toString() : limited(value, 80);
+        return value != null && value.matches("[A-Za-z0-9_-]{8,80}")
+                ? value : UUID.randomUUID().toString();
     }
 
     private static String clientAddress(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        return forwarded == null || forwarded.isBlank() ? request.getRemoteAddr() : limited(forwarded.split(",")[0].trim(), 80);
+        // X-Forwarded-For is client-controlled unless a trusted reverse proxy
+        // has stripped and rewritten it. Never treat it as an audit identity.
+        return limited(request.getRemoteAddr(), 80);
     }
 
     private static Resource resource(String path) {
@@ -89,7 +91,10 @@ public class AdminAuditFilter extends OncePerRequestFilter {
     }
 
     static String safePath(String value) {
-        return limited(value.replaceAll("(?i)/[^/]*@[^/]*", "/{private}").replaceAll("/[0-9]{7,}", "/{number}"), 300);
+        return limited(value
+                .replaceAll("(?i)/[^/]*@[^/]*", "/{private}")
+                .replaceAll("(?i)/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}(?=/|$)", "/{id}")
+                .replaceAll("/[0-9]{7,}", "/{number}"), 300);
     }
 
     private static String limited(String value, int max) {
