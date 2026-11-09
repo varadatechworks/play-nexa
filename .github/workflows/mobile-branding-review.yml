@@ -6,6 +6,8 @@ on:
       - 'apps/mobile/src/constants/brand.ts'
       - 'apps/mobile/src/components/mobile-header.tsx'
       - 'apps/mobile/src/app/index.tsx'
+      - 'apps/mobile/src/app/login.tsx'
+      - 'apps/mobile/src/lib/api.ts'
       - 'apps/mobile/src/i18n/**'
       - '.github/workflows/mobile-branding-review.yml'
   workflow_dispatch:
