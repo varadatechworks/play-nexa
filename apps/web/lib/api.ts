@@ -46,9 +46,11 @@ async function apiResponseError(response: Response,path:string):Promise<ApiError
   const body=await response.json().catch(()=>null) as Record<string,unknown>|null;
   const detail=safeDetail(body);
   if(status===401 && path==="/api/v1/auth/login") {
-    if(detail?.includes("MFA code sent"))
-      return new ApiError(status,"MFA code sent to your registered email. Enter the 6-digit verification code.");
-    return new ApiError(status,"Invalid login details or verification code. Please try again.");
+    // An MFA challenge is a server-declared state, NOT a phrase inferred from
+    // an invalid-credentials message. Otherwise a wrong password opens MFA.
+    if(body?.code==="MFA_REQUIRED")
+      return new ApiError(status,"Verification required. Enter the code sent to your registered email.",{code:"MFA_REQUIRED"});
+    return new ApiError(status,"Invalid email/mobile or password. Please try again.",{code:"INVALID_CREDENTIALS"});
   }
   if(status===401)return new ApiError(status,"Your session has expired. Please sign in again.");
   if(status===403)return new ApiError(status,"You do not have permission to perform this action.");
