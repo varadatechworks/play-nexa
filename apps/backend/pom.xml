@@ -10,8 +10,8 @@
   <groupId>com.jnapanam</groupId>
   <artifactId>sports-zone-backend</artifactId>
   <version>0.1.0</version>
-  <name>Jnapanam Sports Zone Backend</name>
-  <description>Modular monolith backend for Jnapanam Sports Zone</description>
+  <name>PlayNexa Arena Backend</name>
+  <description>Modular sports arena backend for dedicated PlayNexa deployments</description>
   <properties>
     <java.version>21</java.version>
     <springdoc.version>3.1.0</springdoc.version>
