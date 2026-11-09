@@ -11,6 +11,29 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 class GlobalExceptionHandlerStatusTest {
   private final GlobalExceptionHandler handler=new GlobalExceptionHandler();
 
+  private static class Dummy { @SuppressWarnings("unused") void accept(Object request){} }
+
+  @Test void validationIncludesReferenceCodeAndNoStore() throws Exception {
+    var req=new org.springframework.mock.web.MockHttpServletRequest("POST","/api/v1/bookings");
+    req.setAttribute("jnapanam.correlationId","trace-20261110");
+    org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(
+        new org.springframework.web.context.request.ServletRequestAttributes(req));
+    try {
+      var binding=new org.springframework.validation.MapBindingResult(
+          new java.util.HashMap<String,Object>(),"form");
+      binding.rejectValue("name","required","Required");
+      var method=new org.springframework.core.MethodParameter(
+          Dummy.class.getDeclaredMethod("accept",Object.class),0);
+      var response=handler.validation(new org.springframework.web.bind.MethodArgumentNotValidException(method,binding));
+      assertEquals(400,response.getStatusCode().value());
+      assertEquals("INVALID_REQUEST",response.getBody().getProperties().get("code"));
+      assertEquals("trace-20261110",response.getBody().getProperties().get("requestId"));
+      assertEquals("no-store",response.getHeaders().getFirst("Cache-Control"));
+    } finally {
+      org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
+    }
+  }
+
   @Test void missingParameterIsBadRequest() throws Exception {
     var result=handler.missingParameter(
       new MissingServletRequestParameterException("date","String"));
