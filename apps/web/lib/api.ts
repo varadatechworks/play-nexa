@@ -47,7 +47,9 @@ async function apiResponseError(response: Response,path:string):Promise<ApiError
   if(status===401)return new ApiError(status,"Your session has expired. Please sign in again.");
   if(status===403)return new ApiError(status,"You do not have permission to perform this action.");
   if(status===404)return new ApiError(status,"The requested information could not be found. Please refresh and try again.");
-  if(status===408||status===504)return new ApiError(status,"The request took too long. Please try again.");
+  if(status===408||status===504)return new ApiError(status,"The request took too long. Please try again."+supportReference(response));
+  if(status===413)return new ApiError(status,"This file is too large. Please choose a smaller file and try again.");
+  if(status===503)return new ApiError(status,"The arena service is temporarily unavailable or undergoing maintenance. Please try again shortly."+supportReference(response));
   if(status===400||status===409||status===422)
     return new ApiError(status,detail||"Please check your details and try again.",body);
   if(status===429)return new ApiError(status,"Too many attempts. Please wait a moment and try again.");
