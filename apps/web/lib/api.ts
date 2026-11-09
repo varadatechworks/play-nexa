@@ -1,4 +1,10 @@
-export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080").replace(/\/$/, "");
+// Never direct a production customer's browser to localhost on their device.
+// Dedicated and managed deployments must set NEXT_PUBLIC_API_URL explicitly.
+// A missing production value fails to a same-origin request instead of leaking
+// login/refresh credentials to an unrelated local service.
+const configuredApiUrl=(process.env.NEXT_PUBLIC_API_URL||"").trim();
+export const API_BASE_URL = (configuredApiUrl ||
+  (process.env.NODE_ENV==="production" ? "" : "http://localhost:8080")).replace(/\/$/, "");
 
 export type TokenResponse = { tokenType: string; accessToken: string; accessTokenExpiresAt: string; refreshToken: string };
 export type User = { id: string; fullName: string; displayName?: string; profilePhotoUrl?: string; email: string; mobile?: string; addressLine?: string; city?: string; state?: string; postalCode?: string; status: string; roles: string[]; requiresUpfrontPayment: boolean };
