@@ -44,6 +44,8 @@ for(const [type,files] of [["web",web],["mobile",mobile]]){
     report.routes.push({type,route,file:name});
     for(let index=0;index<lines.length;index++){
       for(const check of checks){
+        // React Native Alert.alert is an appropriate native confirmation UI, not a browser alert.
+        if(type==="mobile" && check.key==="browser_alert")continue;
         if(check.regex.test(lines[index]))report.flags.push({
           type,route,file:name,line:index+1,category:check.key,reason:check.why
         });
