@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
         Map<String,String> errors = ex.getBindingResult().getFieldErrors().stream().collect(Collectors.toMap(e -> e.getField(), e -> e.getDefaultMessage() == null ? "invalid" : e.getDefaultMessage(), (a,b) -> a));
         String summary = errors.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining("; "));
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, summary.isBlank() ? "Please correct the highlighted fields" : summary);
-        detail.setType(URI.create("https://jnapanamsportszone.in/problems/validation"));
+        detail.setType(URI.create("about:blank"));
         detail.setProperty("errors", errors); return ResponseEntity.badRequest().body(detail);
     }
     @ExceptionHandler(AccessDeniedException.class)
@@ -50,9 +50,11 @@ public class GlobalExceptionHandler {
         HttpStatus status=HttpStatus.resolve(ex.getStatusCode().value());
         if(status==null)status=HttpStatus.INTERNAL_SERVER_ERROR;
         String reason=ex.getReason();
-        String safe=reason!=null && reason.length()<=160
-                && !reason.matches("(?is).*(?:exception|stacktrace|password|secret|token|sql|jdbc).*")
-                ? reason : status.getReasonPhrase();
+        String safe=status.value()>=500
+                ? "The service is temporarily unavailable. Please try again."
+                : reason!=null && reason.length()<=160
+                        && !reason.matches("(?is).*(?:exception|stacktrace|password|secret|token|sql|jdbc).*")
+                        ? reason : status.getReasonPhrase();
         return problem(status,safe);
     }
     @ExceptionHandler(Exception.class)
@@ -74,8 +76,18 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ProblemDetail> problem(HttpStatus status, String message) {
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(status, message);
-        detail.setType(URI.create("https://jnapanamsportszone.in/problems/" + status.value()));
-        String code=status.value()>=500?"SERVER_ERROR":status==HttpStatus.UNAUTHORIZED?"UNAUTHORIZED":status==HttpStatus.FORBIDDEN?"FORBIDDEN":"REQUEST_ERROR";
+        detail.setType(URI.create("about:blank"));
+        String code=switch(status.value()){
+            case 400 -> "INVALID_REQUEST";
+            case 401 -> "UNAUTHORIZED";
+            case 403 -> "FORBIDDEN";
+            case 404 -> "NOT_FOUND";
+            case 409 -> "CONFLICT";
+            case 422 -> "VALIDATION_FAILED";
+            case 429 -> "RATE_LIMITED";
+            case 503 -> "SERVICE_UNAVAILABLE";
+            default -> status.value()>=500?"SERVER_ERROR":"REQUEST_ERROR";
+        };
         if(status==HttpStatus.UNAUTHORIZED && message.contains("MFA code sent"))code="MFA_REQUIRED";
         detail.setProperty("code",code);
         var attrs=RequestContextHolder.getRequestAttributes();
@@ -85,6 +97,8 @@ public class GlobalExceptionHandler {
             Object id=request.getAttribute("jnapanam.correlationId");
             if(id instanceof String reference)detail.setProperty("requestId",reference);
         }
-        return ResponseEntity.status(status).body(detail);
+        return ResponseEntity.status(status)
+                .header("Cache-Control","no-store")
+                .body(detail);
     }
 }
