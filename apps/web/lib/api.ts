@@ -1,4 +1,10 @@
-export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080").replace(/\/$/, "");
+// Never direct a production customer's browser to localhost on their device.
+// Dedicated and managed deployments must set NEXT_PUBLIC_API_URL explicitly.
+// A missing production value fails to a same-origin request instead of leaking
+// login/refresh credentials to an unrelated local service.
+const configuredApiUrl=(process.env.NEXT_PUBLIC_API_URL||"").trim();
+export const API_BASE_URL = (configuredApiUrl ||
+  (process.env.NODE_ENV==="production" ? "" : "http://localhost:8080")).replace(/\/$/, "");
 
 export type TokenResponse = { tokenType: string; accessToken: string; accessTokenExpiresAt: string; refreshToken: string };
 export type User = { id: string; fullName: string; displayName?: string; profilePhotoUrl?: string; email: string; mobile?: string; addressLine?: string; city?: string; state?: string; postalCode?: string; status: string; roles: string[]; requiresUpfrontPayment: boolean };
@@ -47,7 +53,9 @@ async function apiResponseError(response: Response,path:string):Promise<ApiError
   if(status===401)return new ApiError(status,"Your session has expired. Please sign in again.");
   if(status===403)return new ApiError(status,"You do not have permission to perform this action.");
   if(status===404)return new ApiError(status,"The requested information could not be found. Please refresh and try again.");
-  if(status===408||status===504)return new ApiError(status,"The request took too long. Please try again.");
+  if(status===408||status===504)return new ApiError(status,"The request took too long. Please try again."+supportReference(response));
+  if(status===413)return new ApiError(status,"This file is too large. Please choose a smaller file and try again.");
+  if(status===503)return new ApiError(status,"The arena service is temporarily unavailable or undergoing maintenance. Please try again shortly."+supportReference(response));
   if(status===400||status===409||status===422)
     return new ApiError(status,detail||"Please check your details and try again.",body);
   if(status===429)return new ApiError(status,"Too many attempts. Please wait a moment and try again.");

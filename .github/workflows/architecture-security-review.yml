@@ -1,0 +1,49 @@
+name: PlayNexa security review and architecture handover
+on:
+  pull_request:
+    paths:
+      - 'apps/backend/src/main/java/com/jnapanam/sportszone/security/**'
+      - 'apps/backend/src/main/java/com/jnapanam/sportszone/common/exception/**'
+      - 'apps/backend/src/test/java/com/jnapanam/sportszone/security/**'
+      - 'apps/backend/src/test/java/com/jnapanam/sportszone/common/exception/**'
+      - 'apps/backend/pom.xml'
+      - 'docs/architecture-kt/**'
+      - 'scripts/migrate-playnexa.sh'
+      - 'scripts/route-audit.mjs'
+      - 'tests/ops-evidence.test.mjs'
+      - '.github/workflows/architecture-security-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node-docs-and-route-inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate product and documentation contracts
+        run: npm test
+      - name: Read-only page and screen review
+        run: npm run audit:routes
+      - name: Migration script syntax and read-only source plan
+        run: |
+          bash -n scripts/migrate-playnexa.sh
+          bash scripts/migrate-playnexa.sh plan
+  backend-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: apps/backend/pom.xml
+      - name: Test safe error handling, prod configuration and SaaS fail-closed
+        run: mvn -q -f apps/backend/pom.xml -Dtest=ProductionConfigurationGuardTest,GlobalExceptionHandlerSafeMessagesTest,PublicArenaBrandingControllerTest,SharedHostingSafetyGateFilterTest test

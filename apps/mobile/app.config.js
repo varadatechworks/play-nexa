@@ -26,6 +26,18 @@ if (isRelease && (!icon || icon.toLowerCase().includes("jnapanam") ||
     !icon.startsWith("./assets/") || !existsSync(resolve(__dirname, icon)))) {
   throw new Error("Branded release requires a valid arena-owned icon under assets");
 }
+if (isRelease) {
+  const address = process.env.EXPO_PUBLIC_API_URL || "";
+  let endpoint;
+  try { endpoint = new URL(address); } catch { throw new Error("Branded release requires EXPO_PUBLIC_API_URL with HTTPS arena API"); }
+  if (endpoint.protocol !== "https:" || endpoint.username || endpoint.password ||
+      !endpoint.hostname.includes(".") ||
+      endpoint.hostname==="localhost" || endpoint.hostname.endsWith(".localhost") ||
+      endpoint.hostname==="0.0.0.0" || endpoint.hostname.startsWith("127.") ||
+      endpoint.hostname.startsWith("10.") || endpoint.hostname.startsWith("192.168.")) {
+    throw new Error("Branded release requires a trusted HTTPS arena API endpoint");
+  }
+}
 if (!/^[a-z][a-z0-9+.-]*$/.test(scheme)) throw new Error("Invalid arena app scheme");
 if (!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/.test(packageId))
   throw new Error("Invalid arena package ID");

@@ -1,3 +1,20 @@
+## Updated PlayNexa review and handover — 10 November 2026
+
+The documents below extend the earlier source-derived schema index with **full booking and payment logical ER views, deployment modes, safe migration tooling, error/log policy and UAT/KT guidance**. All diagrams use editable Mermaid source.
+
+- [System architecture and booking/payment lifecycle](SYSTEM_ARCHITECTURE.md)
+- [Customer-hosted, PlayNexa-managed dedicated and future SaaS deployment topologies](DEPLOYMENT_TOPOLOGIES.md)
+- [Booking, payment/refund, billing, commerce ER diagrams](ER_BOOKING_PAYMENTS.md)
+- [Complete source migration catalogue](SCHEMA_INDEX.md)
+- [Safe Flyway migration and rollback playbook](MIGRATION_RUNBOOK.md)
+- [Standard HTTP codes, user-facing messages, security and error logs](STATUS_LOGS_SECURITY.md)
+- [All web/mobile source route inventory and UI/UX acceptance checklist](SCREEN_ROUTE_INVENTORY.md)
+- [Operations maintenance, UAT and customer KT/demo guide](OPERATIONS_KT_UAT.md)
+
+**Verification:** `npm test`, `npm run audit:routes`, `npm run branding:audit`, and `bash scripts/migrate-playnexa.sh plan`. Production requires explicit `APP_ENV=production` or an active Spring `prod` profile, real merchant/secret configuration and independent end-to-end UAT. Do not enable shared SaaS until cross-tenant isolation is implemented and tested.
+
+---
+
 # PlayNexa: Architecture, Deployment, ER, DB, Migration and KT
 > **Snapshot:** 2026-11-09. Evidence: [varadatechworks/play-nexa](https://github.com/varadatechworks/play-nexa) default branch `main`. This is **source-derived**, not a live deployment or data audit.
 **Critical release gate:** repository README explicitly says shared SaaS cross-tenant isolation is incomplete and shared production mode fails closed. Only dedicated deployments should be considered without further engineering signoff.

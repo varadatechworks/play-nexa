@@ -37,4 +37,22 @@ class GlobalExceptionHandlerSafeMessagesTest {
             org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
         }
     }
+    @Test void statusCodesStayMachineReadableAndVendorNeutral(){
+        var conflict=advice.status(new ResponseStatusException(HttpStatus.CONFLICT,"Arena settings changed"));
+        assertEquals(409,conflict.getStatusCode().value());
+        assertEquals("CONFLICT",conflict.getBody().getProperties().get("code"));
+        assertEquals("about:blank",conflict.getBody().getType().toString());
+        assertEquals("no-store",conflict.getHeaders().getFirst("Cache-Control"));
+        var missing=advice.status(new ResponseStatusException(HttpStatus.NOT_FOUND,"Arena not found"));
+        assertEquals("NOT_FOUND",missing.getBody().getProperties().get("code"));
+    }
+    @Test void serverStatusReasonNeverExposesProviderOrDatabaseMessages(){
+        var failure=advice.status(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                "payment gateway user data unavailable"));
+        assertEquals(503,failure.getStatusCode().value());
+        assertEquals("SERVICE_UNAVAILABLE",failure.getBody().getProperties().get("code"));
+        assertFalse(failure.getBody().getDetail().contains("payment gateway"));
+        assertFalse(failure.getBody().getDetail().contains("user data"));
+    }
+
 }

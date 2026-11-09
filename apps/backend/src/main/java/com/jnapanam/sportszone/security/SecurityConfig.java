@@ -1,6 +1,9 @@
 package com.jnapanam.sportszone.security;
 
 import javax.crypto.SecretKey;
+import java.util.Arrays;
+import org.springframework.core.env.Environment;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.*;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -41,12 +44,22 @@ public class SecurityConfig {
         var jwt = new JwtAuthenticationConverter(); jwt.setJwtGrantedAuthoritiesConverter(converter); return jwt;
     }
 
-    @Bean SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationConverter converter) throws Exception {
+    private static boolean production(Environment env) {
+        String mode=env.getProperty("APP_ENV","");
+        return "prod".equalsIgnoreCase(mode) || "production".equalsIgnoreCase(mode)
+                || Arrays.stream(env.getActiveProfiles())
+                    .anyMatch(p->"prod".equalsIgnoreCase(p)||"production".equalsIgnoreCase(p));
+    }
+
+    @Bean SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationConverter converter,
+                                           Environment environment) throws Exception {
         return http.cors(Customizer.withDefaults()).csrf(csrf -> csrf.disable()).sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/commerce/settings", "/api/v1/commerce/categories", "/api/v1/commerce/products", "/api/v1/commerce/products/*").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/subscriptions/offerings", "/api/v1/subscriptions/config").permitAll()
-                        .requestMatchers("/api/v1/auth/**", "/api/v1/public/**", "/actuator/health", "/actuator/health/liveness", "/actuator/health/readiness", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                        .access((authentication, context) -> new AuthorizationDecision(!production(environment)))
+                        .requestMatchers("/api/v1/auth/**", "/api/v1/public/**", "/actuator/health", "/actuator/health/liveness", "/actuator/health/readiness").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(converter))).build();
     }
