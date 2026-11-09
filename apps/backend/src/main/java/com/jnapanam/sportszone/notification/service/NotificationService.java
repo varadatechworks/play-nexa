@@ -1,5 +1,6 @@
 package com.jnapanam.sportszone.notification.service;
 
+import com.jnapanam.sportszone.arena.ArenaBrandingService;
 import com.jnapanam.sportszone.common.exception.BadRequestException;
 import com.jnapanam.sportszone.common.exception.ConflictException;
 import com.jnapanam.sportszone.common.exception.NotFoundException;
@@ -29,6 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class NotificationService {
+    private ArenaBrandingService arenaBranding;
+    @org.springframework.beans.factory.annotation.Autowired(required=false)
+    public void setArenaBranding(ArenaBrandingService arenaBranding){this.arenaBranding=arenaBranding;}
+    private String nameForMessages(){return arenaBranding==null?"PlayNexa Sports Arena":arenaBranding.current().name();}
     private final NotificationRepository notifications;
     private final NotificationPreferenceRepository preferences;
     private final NotificationTemplateRepository templates;
@@ -45,7 +50,7 @@ public class NotificationService {
 
     @Transactional
     public void welcome(UUID userId, String name) {
-        lifecycle(userId, "ACCOUNT", "Welcome to Jnapanam Sports Zone",
+        lifecycle(userId, "ACCOUNT", "Welcome to " + nameForMessages(),
                 "Welcome " + name + ". Your customer account was created successfully.");
     }
 
