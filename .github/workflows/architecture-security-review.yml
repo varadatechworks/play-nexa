@@ -10,6 +10,11 @@ on:
       - 'docs/architecture-kt/**'
       - 'scripts/migrate-playnexa.sh'
       - 'scripts/route-audit.mjs'
+      - 'scripts/audit-api-surface.mjs'
+      - 'apps/mobile/src/lib/api.ts'
+      - 'apps/mobile/src/app/login.tsx'
+      - 'apps/web/app/login/page.tsx'
+      - 'apps/web/lib/api.ts'
       - 'tests/ops-evidence.test.mjs'
       - '.github/workflows/architecture-security-review.yml'
   workflow_dispatch:
@@ -28,6 +33,8 @@ jobs:
           node-version: '22'
       - name: Validate product and documentation contracts
         run: npm test
+      - name: Audit API mapping annotations
+        run: npm run audit:api
       - name: Read-only page and screen review
         run: npm run audit:routes
       - name: Migration script syntax and read-only source plan
