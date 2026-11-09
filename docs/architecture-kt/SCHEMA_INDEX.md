@@ -20,3 +20,6 @@ See [architecture, deployment and KT runbook](README.md) and [controlled migrati
 Verify exact version deployed, schema-only export, Flyway history/checksums, payment/booking race controls, facility price snapshots, refund/invoice reconciliation and branded arena isolation; rehearse rollback and backup restore before customer KT. No automated mutation is performed by these Markdown documents.
 
 **Limits:** migration-file-group snapshots may not reflect subsequent ALTER/DROP/RENAME; SQL scanning cannot replace database introspection or tenant isolation tests.
+## Physical schema inventory companion
+
+Use [read-only schema/Flyway-history export script](../../scripts/schema-export-playnexa.sh) with an approved database inspection account. It creates permission-restricted local outputs, excluded by `.gitignore`. These outputs are **not** automatically a public deliverable and may still contain sensitive DDL defaults, so review before sharing. See [extended logical ER](ER_EXTENDED_MODULES.md) for training, membership, tournaments, promotions and audit.
