@@ -9,6 +9,11 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,6 +49,26 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({HttpMessageNotReadableException.class,MethodArgumentTypeMismatchException.class})
     ResponseEntity<ProblemDetail> malformed(Exception ex){
         return problem(HttpStatus.BAD_REQUEST,"Please check the information entered and try again.");
+    }
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    ResponseEntity<ProblemDetail> missingParameter(MissingServletRequestParameterException ex) {
+        return problem(HttpStatus.BAD_REQUEST,"A required request parameter is missing.");
+    }
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    ResponseEntity<ProblemDetail> wrongMethod(HttpRequestMethodNotSupportedException ex) {
+        return problem(HttpStatus.METHOD_NOT_ALLOWED,"This action is not supported for this endpoint.");
+    }
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    ResponseEntity<ProblemDetail> wrongContentType(HttpMediaTypeNotSupportedException ex) {
+        return problem(HttpStatus.UNSUPPORTED_MEDIA_TYPE,"Unsupported request content type.");
+    }
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    ResponseEntity<ProblemDetail> oversizedFile(MaxUploadSizeExceededException ex) {
+        return problem(HttpStatus.PAYLOAD_TOO_LARGE,"File is too large. Choose a smaller file.");
+    }
+    @ExceptionHandler(NoResourceFoundException.class)
+    ResponseEntity<ProblemDetail> missingEndpoint(NoResourceFoundException ex) {
+        return problem(HttpStatus.NOT_FOUND,"The requested endpoint was not found.");
     }
     @ExceptionHandler(ResponseStatusException.class)
     ResponseEntity<ProblemDetail> status(ResponseStatusException ex){
