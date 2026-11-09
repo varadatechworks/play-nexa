@@ -56,7 +56,6 @@ Shared SaaS environment generation remains intentionally blocked until tenant is
 npm test
 npm run branding:audit
 npm run audit:routes
-npm run audit:api
 bash scripts/migrate-playnexa.sh plan
 ```
 
@@ -91,6 +90,6 @@ The Node static audit inventories customer/admin/mobile source files; **it does 
 
 Production setup requires `APP_ENV=production` (or an active Spring production profile), complete per-arena secret configuration and a production HTTPS API origin. Dedicated customer-hosted and PlayNexa-managed single-tenant instances retain full feature parity.
 
-## Authentication and API regression handover
+## 2026-11-10 UI, audit and technical handover updates
 
-The [authentication and API status test matrix](docs/architecture-kt/AUTH_AND_API_TEST_MATRIX.md) documents the corrected MFA state machine, refresh/session recovery, role-level HTTP responses, and booking/payment/refund negative cases. `npm run audit:api -- --json` provides a **read-only Java mapping inventory** for reconciling controller annotations against staging OpenAPI and Spring authorization; it is not live API validation.
+A [second-pass source inspection](docs/architecture-kt/SOURCE_REVIEW_2026-11-10.md) covers all **39 web pages and 20 Expo mobile screens** at source level. Corrected false MFA prompts, safe 4xx/5xx classification, spoof-resistant audit metadata, an explicit production dedicated-mode gate, venue-branded welcome notifications, and packaging metadata. Added [extended ER models](docs/architecture-kt/ER_EXTENDED_MODULES.md) plus a [read-only schema exporter](scripts/schema-export-playnexa.sh). These commits do **not** certify browser UAT, PostgreSQL migration execution, live gateway reconciliation, shared SaaS or marketplace availability.
