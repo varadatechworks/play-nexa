@@ -38,9 +38,12 @@ public class GlobalExceptionHandler {
     ResponseEntity<ProblemDetail> validation(MethodArgumentNotValidException ex) {
         Map<String,String> errors = ex.getBindingResult().getFieldErrors().stream().collect(Collectors.toMap(e -> e.getField(), e -> e.getDefaultMessage() == null ? "invalid" : e.getDefaultMessage(), (a,b) -> a));
         String summary = errors.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining("; "));
-        ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, summary.isBlank() ? "Please correct the highlighted fields" : summary);
-        detail.setType(URI.create("about:blank"));
-        detail.setProperty("errors", errors); return ResponseEntity.badRequest().body(detail);
+        // Reuse the normal response formatter so validation errors also
+        // contain a stable code, correlation reference and no-store policy.
+        ResponseEntity<ProblemDetail> response=problem(HttpStatus.BAD_REQUEST,
+                summary.isBlank() ? "Please correct the highlighted fields" : summary);
+        response.getBody().setProperty("errors",errors);
+        return response;
     }
     @ExceptionHandler(AccessDeniedException.class)
     ResponseEntity<ProblemDetail> forbidden(AccessDeniedException ex){
