@@ -8,10 +8,11 @@ The documents below extend the earlier source-derived schema index with **full b
 - [Complete source migration catalogue](SCHEMA_INDEX.md)
 - [Safe Flyway migration and rollback playbook](MIGRATION_RUNBOOK.md)
 - [Standard HTTP codes, user-facing messages, security and error logs](STATUS_LOGS_SECURITY.md)
+- [Login/MFA, API route inventory and negative booking/payment test matrix](AUTH_AND_API_TEST_MATRIX.md)
 - [All web/mobile source route inventory and UI/UX acceptance checklist](SCREEN_ROUTE_INVENTORY.md)
 - [Operations maintenance, UAT and customer KT/demo guide](OPERATIONS_KT_UAT.md)
 
-**Verification:** `npm test`, `npm run audit:routes`, `npm run branding:audit`, and `bash scripts/migrate-playnexa.sh plan`. Production requires explicit `APP_ENV=production` or an active Spring `prod` profile, real merchant/secret configuration and independent end-to-end UAT. Do not enable shared SaaS until cross-tenant isolation is implemented and tested.
+**Verification:** `npm test`, `npm run audit:routes`, `npm run audit:api`, `npm run branding:audit`, and `bash scripts/migrate-playnexa.sh plan`. Production requires explicit `APP_ENV=production` or an active Spring `prod` profile, real merchant/secret configuration and independent end-to-end UAT. Do not enable shared SaaS until cross-tenant isolation is implemented and tested.
 
 ---
 
