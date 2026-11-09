@@ -59,3 +59,7 @@ The backend also runs Flyway on startup (`spring.flyway.enabled=true`); do not r
 ## Multi-tenant expansion warning
 
 A shared SaaS schema needs a complete tenant migration covering **every** user membership, facility, slot, booking, payment, refund, invoice, tax record, job, object, audit, loyalty, shop and notification. Model `arena_id` in unique constraints, foreign keys and row-level security. This migration does **not exist yet** and is an explicit blocker for removing the Java `SharedHostingSafetyGateFilter`.
+
+## Physical schema handover export
+
+After approving the target PostgreSQL environment and granting an inspection role with only the required read privileges, run `bash scripts/schema-export-playnexa.sh` with `PGHOST`, `PGDATABASE`, `PGUSER` and approved secret-based authentication. This **does not apply migrations**; it exports schema-only DDL and Flyway history into a permission-restricted ignored local directory. Review output before handing to customer IT and do not commit raw exports. `scripts/migrate-playnexa.sh` remains the only reviewed operator-driven migration wrapper.
