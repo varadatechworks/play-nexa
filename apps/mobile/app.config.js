@@ -31,7 +31,10 @@ if (isRelease) {
   let endpoint;
   try { endpoint = new URL(address); } catch { throw new Error("Branded release requires EXPO_PUBLIC_API_URL with HTTPS arena API"); }
   if (endpoint.protocol !== "https:" || endpoint.username || endpoint.password ||
-      !endpoint.hostname.includes(".") || /^(localhost|127\\.0\\.0\\.1)$/i.test(endpoint.hostname)) {
+      !endpoint.hostname.includes(".") ||
+      endpoint.hostname==="localhost" || endpoint.hostname.endsWith(".localhost") ||
+      endpoint.hostname==="0.0.0.0" || endpoint.hostname.startsWith("127.") ||
+      endpoint.hostname.startsWith("10.") || endpoint.hostname.startsWith("192.168.")) {
     throw new Error("Branded release requires a trusted HTTPS arena API endpoint");
   }
 }
