@@ -58,6 +58,7 @@ try{
   await page.locator("#result:not(.hidden)").waitFor({timeout:10000});
   const href=await page.locator("#preview-link").getAttribute("href");
   assert.match(href,/arena=victory-qa-sports-arena/);
+  await page.evaluate(()=>window.scrollTo(0,0));
   await page.screenshot({path:resolve(folder,"playnexa-onboarding-desktop.png"),fullPage:true});
 
   await page.goto(new URL(href,page.url()).href,{waitUntil:"networkidle"});
