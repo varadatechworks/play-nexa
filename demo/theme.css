@@ -213,3 +213,51 @@ code{font-size:12px}
  .footer-inner>div:first-child small{border:0;padding:0}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}}
+
+/* Guided arena onboarding — complements the booking showcase */
+.onboard-intro{display:grid;grid-template-columns:1.2fr .8fr;background:#0d3545;color:#fff;border-radius:23px;overflow:hidden;min-height:320px;margin:10px 0 58px}
+.onboard-intro>div:first-child{padding:55px 52px;position:relative;z-index:1}
+.onboard-intro .eyebrow{color:#f4c778}
+.onboard-intro h1{font-size:clamp(2.9rem,5vw,4.7rem);margin:16px 0;line-height:1.04}
+.onboard-intro h1 span{color:#7ce0c8}
+.onboard-intro p{color:#bcd6db;font-size:14px;max-width:580px}
+.onboard-highlights{display:flex;gap:18px;flex-wrap:wrap;margin-top:25px;color:#b4e7d8;font-size:11px;font-weight:800}
+.onboard-hero-art{position:relative;display:grid;place-items:center;background:radial-gradient(circle at 45% 50%,#318e857d,transparent 59%)}
+.onboard-orbit{position:absolute;border:1px solid #b4f6df38;width:340px;height:340px;border-radius:50%;display:grid;place-items:start;padding:30px;color:#f4c46f;font-size:26px}
+.onboard-hero-letter{font:800 190px Outfit,sans-serif;color:#f4cb77;text-shadow:0 25px 50px #0005;transform:rotate(-10deg)}
+.onboard-badge{position:absolute;bottom:30px;right:30px;border:1px solid #7ac3b86e;border-radius:10px;color:#d3f7eb;padding:10px 14px;font-size:10px;line-height:1.65;letter-spacing:1px;font-weight:800;backdrop-filter:blur(7px);background:#063144a8}
+.setup-section-title{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:26px}
+.setup-section-title h2{margin:9px 0}
+.setup-section-title p{font-size:14px;margin:0}
+.onboard-columns{align-items:start;grid-template-columns:minmax(0,1.15fr) minmax(340px,.85fr)}
+.onboard-aside{display:grid;gap:20px;align-content:start}
+.onboarding-card,.preview-card,.checklist-card{padding:31px}
+.card-heading{display:flex;gap:13px;align-items:center;margin-bottom:27px}
+.card-heading h3{font-size:23px;margin:0 0 4px}
+.card-heading p{font-size:12px;margin:0}
+.step-number{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#e8f7f3;color:#058675;font-size:12px;font-weight:800;flex:none}
+.onboarding-card .grid{gap:18px}
+.full-span{grid-column:1/-1}
+.field-help{display:block;font-size:11px;color:#84949c;line-height:1.45;font-weight:500}
+.optional{color:#839198;font-weight:500}
+.onboarding-form-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:27px}
+.onboarding-form-actions .button.primary{background:#086e64;color:#fff}
+.preview-card{padding:25px}
+.preview-card .card-heading{margin-bottom:20px}
+.preview-card .preview{min-height:230px;position:relative;overflow:hidden}
+.preview-card .preview:before{content:"";position:absolute;border:1px solid #ffffff22;width:235px;height:235px;border-radius:50%;right:-80px;top:-95px}
+.preview-card .preview h2,.preview-card .preview p,.preview-card .preview .eyebrow,.preview-card .preview .pill{position:relative}
+.result-card{border-top:1px solid #e3ebed;margin-top:20px;padding-top:20px}
+.result-card h3{color:#126e59}
+.result-card p{font-size:12px}
+.result-links{display:flex;gap:9px;flex-wrap:wrap}
+.result-links .button.primary{background:#086e64;color:#fff}
+.result-card details{margin-top:15px;font-size:12px}
+.result-card summary{cursor:pointer;font-weight:800;color:#0b6e65;padding:8px 0}
+.checklist-card h3{margin:11px 0 16px;font-size:24px}
+.checklist-card ul{list-style:none;padding:0;margin:0;display:grid;gap:14px}
+.checklist-card li{display:flex;align-items:center;gap:12px;font-size:12px;color:#496471}
+.checklist-card li>span{display:grid;place-items:center;width:23px;height:23px;border-radius:7px;background:#e9f6f1;color:#0f8e79;font-weight:800;flex:none}
+.onboarding-warning{margin-top:23px;padding:15px;background:#fff7e8;border:1px solid #f7e3b9;border-radius:11px;color:#7a653f;font-size:11px;line-height:1.65}
+@media(max-width:900px){.onboard-intro{grid-template-columns:1fr}.onboard-intro>div:first-child{padding:42px}.onboard-hero-art{min-height:180px}.onboard-hero-letter{font-size:130px}.onboard-orbit{width:230px;height:230px}.onboard-columns{grid-template-columns:1fr}.onboard-aside{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.onboard-intro{margin-bottom:42px}.onboard-intro>div:first-child{padding:34px 25px}.onboard-intro h1{font-size:3.1rem}.onboard-highlights{gap:12px}.onboard-hero-art{min-height:135px}.onboard-hero-letter{font-size:90px}.onboard-badge{bottom:15px;right:15px}.setup-section-title{align-items:start;flex-direction:column}.onboard-aside{grid-template-columns:1fr}.onboarding-card,.preview-card,.checklist-card{padding:23px}.full-span{grid-column:auto}.onboarding-form-actions .button{flex:1}}
