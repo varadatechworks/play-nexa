@@ -1,29 +1,135 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Onboard an arena | PlayNexa</title><link rel="stylesheet" href="./theme.css"></head><body>
-<header><div class="top"><a class="logo" href="./arena.html?arena=riverside">PLAY<em>NEXA</em></a><nav class="nav"><a href="./arena.html?arena=riverside">Sports marketplace</a><a href="./arena.html?arena=riverside">Branded arena</a><a aria-current="page" href="./onboard.html">New arena setup</a></nav></div></header>
-<main class="container"><div class="eyebrow">PlayNexa partner onboarding</div><h1>Launch an arena<br>brand in minutes.</h1><p>Choose the hosting arrangement your customer wants. Every option includes online bookings, payments, refunds, memberships, coaching, operations, tax and billing. Marketplace is a future product, not a prerequisite.</p>
-<div class="notice">DEMO SETUP — This creates a synthetic, browser-local arena profile only. It does not provision a server, domain, payment account or real bookings. Production onboarding requires domain verification, RBAC and payment setup.</div>
-<div class="columns section">
-<section class="card"><h2>01 · Arena setup</h2><form id="form">
-<div class="grid">
-<label class="field">Arena name *<input id="name" required maxlength="90" placeholder="e.g. Victory Sports Arena"></label>
-<label class="field">City *<input id="city" required maxlength="80" placeholder="Bengaluru"></label>
-<label class="field">Who hosts and manages the platform?<select id="deployment">
-<option value="customer_hosted">Customer-hosted — arena manages infrastructure</option>
-<option value="playnexa_managed_single_tenant" selected>PlayNexa-managed — dedicated arena</option>
-<option value="multi_tenant_saas">PlayNexa SaaS — shared infrastructure, isolated arena</option>
-</select></label>
-<label class="field">Sports (comma separated) *<input id="sports" required value="Badminton, Football, Swimming"></label>
-<label class="field">Primary colour<input id="primary" type="color" value="#113e54"></label>
-<label class="field">Accent colour<input id="accent" type="color" value="#efa948"></label>
-<label class="field">Tagline<input id="tagline" value="Play • Train • Compete" maxlength="150"></label>
-<label class="field">Domain (optional)<input id="domain" placeholder="arena.example.com"></label>
-</div><div class="notice" style="margin:18px 0">All three deployment choices retain the complete booking, payments, invoicing, refunds, check-in and arena-management feature set. Shared SaaS is not yet enabled for production.</div>
-<div class="actions"><button class="button" type="submit">Create demo arena</button><button class="button secondary" type="reset">Reset form</button></div>
-<p id="error" class="error" role="alert"></p><p id="success" class="success" aria-live="polite"></p>
-</form></section>
-<aside class="card"><h2>02 · Brand preview</h2><div class="preview" id="preview"><div class="eyebrow">Powered by PlayNexa</div><h2 id="preview-name"></h2><p id="preview-tagline"></p><div id="preview-mode" class="pill"></div></div>
-<h3>Deployment checklist</h3><p>✓ Arena identity and sports profile<br>○ Enable customer booking and availability<br>○ Configure slots and capacity<br>○ Pricing, taxes and invoicing<br>○ Verify domain and assets<br>○ Arena admin, OTP and roles<br>○ Payment provider and webhooks<br>○ UAT, security checks and publish</p>
-<div id="result" class="hidden"><h3>Demo arena created</h3><a class="button" id="preview-link" href="./arena.html">Open branded demo</a> <a class="button secondary" href="./arena.html?arena=riverside">View marketplace</a><p class="sub">Full-featured arena configuration draft (never includes secrets):</p><pre id="json" style="font-size:11px;overflow:auto;max-height:300px"></pre><button id="copy" class="button secondary" type="button">Copy JSON</button></div>
-</aside></div>
-</main><footer>PlayNexa · A sports platform by Varada Techworks</footer>
-<script type="module" src="./onboard.mjs"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b2335">
+  <meta name="description" content="Explore PlayNexa arena onboarding and customer-selected hosting in a guided browser demonstration.">
+  <title>Arena onboarding | PlayNexa</title>
+  <link rel="stylesheet" href="/demo/theme.css">
+  <script type="module" src="/demo/onboard.mjs"></script>
+</head>
+<body>
+  <a class="skip-link" href="#setup">Skip to arena setup</a>
+  <header class="site-header">
+    <div class="nav-container">
+      <a class="brand" href="/demo/arena.html" aria-label="PlayNexa demo home">
+        <span class="brand-symbol" aria-hidden="true">P<span>✦</span></span>
+        <span class="brand-text">play<span>nexa</span><small>SPORTS PLATFORM</small></span>
+      </a>
+      <nav class="nav" aria-label="Main navigation">
+        <a href="/demo/arena.html">Arena experience</a>
+        <a href="/demo/arena.html#facilities">Facilities</a>
+        <a href="/demo/arena.html#booking-demo">Sample booking</a>
+      </nav>
+      <a aria-current="page" class="nav-cta" href="/demo/onboard.html">Arena onboarding <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main id="setup" class="container">
+    <div class="demo-banner" role="note">
+      <span class="demo-dot" aria-hidden="true"></span>
+      <strong>GUIDED PRODUCT PREVIEW</strong>
+      <span>Create a browser-local arena concept, not a production deployment.</span>
+      <a href="/demo/arena.html">Return to arena demo →</a>
+    </div>
+    <section class="onboard-intro">
+      <div>
+        <div class="eyebrow">WELCOME TO PLAYNEXA</div>
+        <h1>Your arena.<br><span>Your rules.</span></h1>
+        <p>Launch a sports booking experience built around your venue. Configure your identity, choose who manages the infrastructure and preview your brand instantly.</p>
+        <div class="onboard-highlights"><span>✓ Full booking features</span><span>✓ Flexible hosting</span><span>✓ Your arena brand</span></div>
+      </div>
+      <div class="onboard-hero-art" aria-hidden="true"><span class="onboard-orbit">✦</span><span class="onboard-hero-letter">P</span><span class="onboard-badge">ONE PLATFORM<br>ALL ARENAS</span></div>
+    </section>
+
+    <div class="setup-section-title"><div><div class="eyebrow">GET STARTED</div><h2>Build your arena preview</h2><p>Two simple steps to explore the onboarding experience. No account or payment required.</p></div><span class="section-counter">01 — CONFIGURE & PREVIEW</span></div>
+    <div class="columns onboard-columns">
+      <section class="card onboarding-card" aria-labelledby="configure-title">
+        <div class="card-heading"><span class="step-number">01</span><div><h3 id="configure-title">Arena details</h3><p>Start with the essentials. You can update these later in a real deployment.</p></div></div>
+        <form id="form">
+          <div class="grid">
+            <label class="field">Arena name <span class="required">*</span>
+              <input id="name" required maxlength="90" autocomplete="organization" placeholder="e.g. Victory Sports Arena">
+            </label>
+            <label class="field">City <span class="required">*</span>
+              <input id="city" required maxlength="80" placeholder="e.g. Bengaluru">
+            </label>
+            <label class="field full-span">Who manages the platform?
+              <select id="deployment">
+                <option value="customer_hosted">Customer-hosted — arena manages servers</option>
+                <option value="playnexa_managed_single_tenant" selected>PlayNexa-managed — dedicated instance</option>
+                <option value="multi_tenant_saas">PlayNexa SaaS — shared, tenant-isolated infrastructure</option>
+              </select>
+              <span class="field-help">Every hosting option includes the same complete booking and operations capabilities.</span>
+            </label>
+            <label class="field full-span">Sports you offer <span class="required">*</span>
+              <input id="sports" required value="Badminton, Football, Swimming" placeholder="Badminton, Cricket, Swimming">
+              <span class="field-help">Separate sports with commas.</span>
+            </label>
+            <label class="field">Primary brand colour
+              <input id="primary" type="color" value="#113e54">
+            </label>
+            <label class="field">Accent brand colour
+              <input id="accent" type="color" value="#efa948">
+            </label>
+            <label class="field full-span">Arena tagline
+              <input id="tagline" value="Play • Train • Compete" maxlength="150">
+            </label>
+            <label class="field full-span">Custom domain <span class="optional">(optional)</span>
+              <input id="domain" placeholder="arena.example.com" inputmode="url">
+              <span class="field-help">A demo domain is not verified or registered.</span>
+            </label>
+          </div>
+          <div class="onboarding-form-actions">
+            <button class="button primary" type="submit">Create demo arena <span aria-hidden="true">↗</span></button>
+            <button class="button secondary" type="reset">Reset form</button>
+          </div>
+          <p id="error" class="error" role="alert"></p>
+          <p id="success" class="success" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <aside class="onboard-aside">
+        <div class="card preview-card">
+          <div class="card-heading"><span class="step-number">02</span><div><h3>Live brand preview</h3><p>Watch your arena identity take shape.</p></div></div>
+          <div class="preview" id="preview">
+            <span class="eyebrow">POWERED BY PLAYNEXA</span>
+            <h2 id="preview-name">Your Sports Arena</h2>
+            <p id="preview-tagline">Play • Train • Compete</p>
+            <div id="preview-mode" class="pill">PlayNexa-managed, single-tenant</div>
+          </div>
+          <div id="result" class="hidden result-card">
+            <h3>✓ Sample arena created</h3>
+            <p>Open the branded booking preview. Your settings exist only in this browser.</p>
+            <div class="result-links"><a class="button primary" id="preview-link" href="/demo/arena.html">Open arena preview ↗</a></div>
+            <details><summary>View generated demo configuration</summary><pre id="json"></pre></details>
+            <button id="copy" class="reset-link" type="button">Copy sample configuration JSON</button>
+          </div>
+        </div>
+        <div class="card checklist-card">
+          <div class="eyebrow">WHAT COMES NEXT</div><h3>Full arena onboarding</h3>
+          <ul>
+            <li><span>✓</span>Arena identity and sports catalogue</li>
+            <li><span>○</span>Facilities, capacity and schedules</li>
+            <li><span>○</span>Pricing, taxes, policies and invoicing</li>
+            <li><span>○</span>Admin accounts and staff roles</li>
+            <li><span>○</span>Payments, notifications and UAT</li>
+            <li><span>○</span>Verified domain, backups and release</li>
+          </ul>
+          <div class="onboarding-warning"><strong>Demo only</strong> — this page does not provision servers, verify domains, create real bookings or collect payments. Shared SaaS is still under development.</div>
+        </div>
+      </aside>
+    </div>
+    <section class="closing-cta">
+      <div><div class="eyebrow">SPORTS OPERATIONS, SIMPLIFIED</div><h2>Full features.<br>Your preferred hosting.</h2><p>Customer-hosted, PlayNexa-managed or future multi-tenant SaaS — booking, payments, memberships and venue operations remain core to every option.</p></div>
+      <a class="button primary" href="/demo/arena.html">View booking experience ↗</a>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="footer-inner">
+    <div><span class="footer-logo">play<span>nexa</span></span><small>Sports booking & arena management</small></div>
+    <div>© <span id="year">2026</span> Varada Techworks <span class="footer-sep">•</span> Browser-only product demonstration</div>
+  </div></footer>
+  <noscript><div class="noscript-banner">Enable JavaScript to see branding changes and create a local sample arena.</div></noscript>
+</body>
+</html>

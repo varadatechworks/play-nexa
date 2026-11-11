@@ -1,0 +1,41 @@
+name: PlayNexa demo visual and browser acceptance
+on:
+  pull_request:
+    paths:
+      - 'demo/**'
+      - 'scripts/demo-server.mjs'
+      - 'scripts/demo-browser-check.mjs'
+      - 'tests/demo-http.test.mjs'
+      - 'package.json'
+      - '.github/workflows/demo-browser-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  interactive-demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Node contract and real HTTP asset tests
+        run: npm test
+      - name: Install Chromium browser test dependency
+        run: npm install --no-save --no-package-lock playwright
+      - name: Provision headless Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify CSS, scripts, booking and onboarding in real browser
+        run: node scripts/demo-browser-check.mjs
+      - name: Upload desktop and mobile visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playnexa-demo-ui-screenshots
+          path: .artifacts/*.png
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 14

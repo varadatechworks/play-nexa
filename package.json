@@ -14,6 +14,7 @@
     "arena:env": "node scripts/render-arena-env.mjs",
     "branding:audit": "node scripts/white-label-audit.mjs",
     "audit:routes": "node scripts/route-audit.mjs",
-    "audit:api": "node scripts/audit-api-surface.mjs"
+    "audit:api": "node scripts/audit-api-surface.mjs",
+    "demo:browser": "node scripts/demo-browser-check.mjs"
   }
 }

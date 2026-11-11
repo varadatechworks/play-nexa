@@ -2,6 +2,7 @@ import {buildArenaDraft, slugify, validateRegistry} from "../packages/platform-c
 import {DEPLOYMENT_DETAILS} from "../packages/platform-core/deployment.mjs";
 import {demoLocalKey, demoRegistry} from "./demo-data.mjs";
 const $ = id => document.getElementById(id);
+$("year").textContent=new Date().getFullYear();
 function preview(){
   $("preview-name").textContent=$("name").value.trim()||"Your Sports Arena";
   $("preview-tagline").textContent=$("tagline").value.trim()||"Play • Train • Compete";
@@ -10,7 +11,12 @@ function preview(){
   $("preview").style.borderTop="5px solid "+$("accent").value;
 }
 for(const id of ["name","tagline","deployment","primary","accent"])$(id).addEventListener("input",preview);
-$("form").addEventListener("reset",()=>{setTimeout(preview,0);$("error").textContent="";$("success").textContent=""});
+$("form").addEventListener("reset",()=>{
+  setTimeout(preview,0);
+  $("error").textContent="";
+  $("success").textContent="";
+  $("result").classList.add("hidden");
+});
 $("form").addEventListener("submit",e=>{
   e.preventDefault();$("error").textContent="";$("success").textContent="";
   try{
@@ -27,13 +33,16 @@ $("form").addEventListener("submit",e=>{
     if(registry.some(a=>a.slug===draft.slug))throw new Error("That arena name/slug already exists in this demo. Choose a different name.");
     // ONLY for local sales preview. Production publishing must require readiness checks.
     draft.id="arena-demo-"+draft.slug;
-    draft.status="published";
+    // This is a preview, not a live, approved, published customer arena.
+    draft.status="draft";
     draft.samplePrices=Object.fromEntries(draft.sports.map(s=>[s.code,350]));
     validateRegistry([...registry,draft]);
     let added=[];try{added=JSON.parse(localStorage.getItem(demoLocalKey)||"[]")}catch{}
     if(!Array.isArray(added))added=[];
-    added.push(draft);localStorage.setItem(demoLocalKey,JSON.stringify(added));
-    $("success").textContent="Full-featured arena profile created for this browser demo. Open its booking preview.";
+    if(added.length>=30)throw new Error("Demo storage is full. Clear browser demo profiles before adding more.");
+    added.push(draft);
+    localStorage.setItem(demoLocalKey,JSON.stringify(added));
+    $("success").textContent="Your demo arena is ready to preview in this browser. No live deployment or reservation was created.";
     $("preview-link").href="./arena.html?arena="+encodeURIComponent(draft.slug);
     $("json").textContent=JSON.stringify(draft,null,2);
     $("result").classList.remove("hidden");
