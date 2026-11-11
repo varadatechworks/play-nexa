@@ -28,7 +28,9 @@ Requires Node.js 20+, no paid services or dependencies for this demo:
 npm run demo
 ```
 
-Open **http://127.0.0.1:8080** to choose a branded arena, view its sports and create a **synthetic sample booking**. Use `/demo/onboard.html` to create a browser-local arena profile and choose one of the three hosting arrangements.
+Open **http://127.0.0.1:8080/demo/arena.html** to choose a branded arena, view sports and create a **synthetic sample booking**. Open **http://127.0.0.1:8080/demo/onboard.html** to create a browser-local arena profile and select one of the three hosting arrangements. Opening the root URL now redirects to the correct page so the stylesheet and JavaScript load under `/demo/`.
+
+The demo has a responsive arena experience, card-based sports catalogue, sample booking form and a branded onboarding wizard. It is **not** the full Jnapanam booking application or a production SaaS deployment.
 
 **Warning:** Demo bookings are not live reservations. No payment, inventory hold, invoice, refund or external notification occurs in the static demo.
 
@@ -93,3 +95,19 @@ Production setup requires `APP_ENV=production` (or an active Spring production p
 ## 2026-11-10 UI, audit and technical handover updates
 
 A [second-pass source inspection](docs/architecture-kt/SOURCE_REVIEW_2026-11-10.md) covers all **39 web pages and 20 Expo mobile screens** at source level. Corrected false MFA prompts, safe 4xx/5xx classification, spoof-resistant audit metadata, an explicit production dedicated-mode gate, venue-branded welcome notifications, and packaging metadata. Added [extended ER models](docs/architecture-kt/ER_EXTENDED_MODULES.md) plus a [read-only schema exporter](scripts/schema-export-playnexa.sh). These commits do **not** certify browser UAT, PostgreSQL migration execution, live gateway reconciliation, shared SaaS or marketplace availability.
+
+## Local demo loading and UI regression checks
+
+The earlier demo had an asset-loading bug: opening `http://127.0.0.1:8080/` internally rewrote to the arena HTML **without changing the browser URL**, so relative CSS/ES module links became `/theme.css` and `/arena.mjs` and returned 404. The server now redirects to `/demo/arena.html`, and both demo pages use absolute `/demo/` asset URLs.
+
+Check a clean browser session after updating `main`:
+
+```powershell
+git pull
+# Stop the existing demo process with Ctrl+C before restarting:
+npm run demo
+```
+
+Open `http://127.0.0.1:8080/demo/arena.html` and press **Ctrl+Shift+R** if your browser kept a stale page. You should see the dark branded hero, loaded sport cards and selectable sample booking time slots; no payment is collected. To inspect HTTP assets, open `http://127.0.0.1:8080/demo/theme.css` and `http://127.0.0.1:8080/demo/arena.mjs` directly; both should return source content, not 404.
+
+Run `npm test` for the Node HTTP smoke test. GitHub CI also uses real headless Chromium to test booking/onboarding interactions and save desktop/mobile screenshots as an Actions artifact. Optional local browser testing requires installing the `playwright` package and Chromium separately. The browser checks are demo UI acceptance only, not booking engine, payment or security certification.
