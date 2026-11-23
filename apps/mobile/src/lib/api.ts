@@ -17,7 +17,8 @@ export type User = {
   status:string;roles:string[];requiresUpfrontPayment:boolean;
 };
 const defaultHost=Platform.OS==='android'?'10.0.2.2':'localhost';
-export const API_URL=(process.env.EXPO_PUBLIC_API_URL||'http://'+defaultHost+':8080').replace(/\/$/,'');
+// Local emulator/localhost fallback is development-only. EAS preview and production must provide an HTTPS API origin.
+export const API_URL=(process.env.EXPO_PUBLIC_API_URL||((typeof __DEV__!=='undefined'&&__DEV__)?'http://'+defaultHost+':8080':'')).replace(/\/$/,'');
 export const REFRESH_TOKEN_KEY = 'playnexa.refreshToken';
 let accessToken:string|null=null;
 let refreshInFlight:Promise<string|null>|null=null;
@@ -42,7 +43,12 @@ export function userFriendlyError(reason:unknown,fallback?:string){
  * simultaneous refresh requests using the same old token would revoke each other.
  * Never remove saved credentials when the network is unavailable or the server is 5xx.
  */
+function assertApiUrlConfigured(){
+  if(!API_URL)throw new ApiError('The app is not configured to reach PlayNexa services. Please install the latest release or contact support.',0,'API_URL_NOT_CONFIGURED');
+}
+
 export async function refreshAccessToken():Promise<string|null>{
+  assertApiUrlConfigured();
   if(refreshInFlight)return refreshInFlight;
   refreshInFlight=(async()=>{
     const saved=await getStoredValue(REFRESH_TOKEN_KEY);
@@ -86,6 +92,7 @@ export async function clearMobileSession(){
 }
 
 export async function api<T>(path:string,options:RequestInit={}):Promise<T>{
+  assertApiUrlConfigured();
   const method=(options.method||'GET').toUpperCase();
   const geoHeaders=['POST','PUT','PATCH','DELETE'].includes(method)?await getEventLocationHeaders():{};
   // Never attach an expired JWT to login, registration, password-reset or refresh endpoints.
