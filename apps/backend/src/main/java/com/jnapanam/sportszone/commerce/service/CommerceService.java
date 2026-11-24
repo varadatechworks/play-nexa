@@ -54,9 +54,16 @@ public class CommerceService {
     public List<Product> products(String category) {
         String sql = "select p.*,c.code category_code from commerce_products p "
                 + "join commerce_categories c on c.id=p.category_id "
-                + "where p.status='ACTIVE' and c.status='ACTIVE' "
-                + "and (? is null or upper(c.code)=upper(?)) order by p.name";
-        return jdbc.query(sql, (r, n) -> product(r), category, category);
+                + "where p.status='ACTIVE' and c.status='ACTIVE' ";
+        // Do not bind NULL to an untyped PostgreSQL predicate (? IS NULL).
+        // PostgreSQL may be unable to infer the parameter type for the public,
+        // unfiltered catalogue request. Build the optional predicate only when
+        // a non-blank category was supplied.
+        if (category == null || category.isBlank()) {
+            return jdbc.query(sql + "order by p.name", (r, n) -> product(r));
+        }
+        return jdbc.query(sql + "and upper(c.code)=upper(?) order by p.name",
+                (r, n) -> product(r), category.trim());
     }
 
     public Product product(UUID id) {
