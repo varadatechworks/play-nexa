@@ -21,7 +21,29 @@ export default function Shop(){
  const {user,language}=useApp();const [settings,setSettings]=useState<Settings|null>(null);const [products,setProducts]=useState<Product[]>([]);
  const [cart,setCart]=useState<Cart>({items:[],subtotalPaise:0});const [quote,setQuote]=useState<Quote|null>(null);const [points,setPoints]=useState(0);
  const [orders,setOrders]=useState<Order[]>([]);const [tab,setTab]=useState("shop");const [message,setMessage]=useState("");const [messageKind,setMessageKind]=useState<"success"|"warning"|"error"|"info">("info");const [loading,setLoading]=useState(true);const [heroIndex,setHeroIndex]=useState(0);
- const load=useCallback(async(preserveFeedback=false)=>{setLoading(true);try{const [s,p]=await Promise.all([api<Settings>("/api/v1/commerce/settings"),api<Product[]>("/api/v1/commerce/products")]);setSettings(s);setProducts(p);if(user){const [c,o]=await Promise.all([api<Cart>("/api/v1/commerce/cart"),api<Order[]>("/api/v1/commerce/orders")]);setCart(c);setOrders(o);if(c.items.length)setQuote(await api<Quote>("/api/v1/commerce/cart/loyalty-quote"));else setQuote(null)}if(!preserveFeedback){setMessage("");setMessageKind("info")}return true;}catch(e){if(!preserveFeedback){setMessageKind("error");setMessage(e instanceof ApiError?e.status===401||e.status===403?"Shop catalog access is incorrectly restricted. Please report this issue.":e.message:"The shop could not be loaded. Please try again.");}return false;}finally{setLoading(false)}},[user]);
+ const load=useCallback(async(preserveFeedback=false)=>{setLoading(true);let hasUsableSettings=false;let partialFailure=false;try{
+   // A catalogue outage must not take down shop settings, cart or order history.
+   const settingsResult=await api<Settings>("/api/v1/commerce/settings").then(value=>({ok:true as const,value})).catch(error=>({ok:false as const,error}));
+   if(!settingsResult.ok){throw settingsResult.error;}
+   const s=settingsResult.value;setSettings(s);hasUsableSettings=true;
+   const productsResult=await api<Product[]>("/api/v1/commerce/products").then(value=>({ok:true as const,value})).catch(error=>({ok:false as const,error}));
+   if(productsResult.ok){setProducts(productsResult.value);}else{partialFailure=true;setProducts([]);}
+   if(user){
+     const [cartResult,ordersResult]=await Promise.all([
+       api<Cart>("/api/v1/commerce/cart").then(value=>({ok:true as const,value})).catch(error=>({ok:false as const,error})),
+       api<Order[]>("/api/v1/commerce/orders").then(value=>({ok:true as const,value})).catch(error=>({ok:false as const,error}))
+     ]);
+     if(cartResult.ok){setCart(cartResult.value);if(cartResult.value.items.length){
+       try{setQuote(await api<Quote>("/api/v1/commerce/cart/loyalty-quote"));}
+       catch{setQuote(null);partialFailure=true;}
+     }else setQuote(null);}else partialFailure=true;
+     if(ordersResult.ok)setOrders(ordersResult.value);else partialFailure=true;
+   }
+   if(!preserveFeedback){setMessageKind(partialFailure?"warning":"info");setMessage(partialFailure?"Some shop information is temporarily unavailable. Your available cart and orders remain accessible. Please retry.":"");}
+   return true;
+ }catch(e){if(!hasUsableSettings){if(!preserveFeedback){setMessageKind("error");setMessage(e instanceof ApiError?e.message:"The shop could not be loaded. Please try again.");}return false;}
+   if(!preserveFeedback){setMessageKind("warning");setMessage("The shop is partially available. Some information could not be refreshed. Please try again.");}return true;
+ }finally{setLoading(false)}},[user]);
  useEffect(()=>{void load()},[load]);
  useEffect(()=>{const timer=window.setInterval(()=>setHeroIndex(i=>(i+1)%heroMedia.length),5000);return()=>window.clearInterval(timer)},[]);
  async function add(id:string){if(!user){setMessageKind("warning");setMessage("Please login to add items.");return}try{const updated=await api<Cart>("/api/v1/commerce/cart/items",{method:"PUT",body:JSON.stringify({variantId:id,quantity:1})});setCart(updated);try{setQuote(await api<Quote>("/api/v1/commerce/cart/loyalty-quote"));setMessageKind("success");setMessage("Added to cart.")}catch{setMessageKind("warning");setMessage("Item added, but cart totals could not refresh. Open the cart to verify totals.")}}catch(e){setMessageKind("error");setMessage(errorText(e))}}
