@@ -8,6 +8,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.jnapanam.sportszone.commerce.dto.CommerceDtos.CheckoutRequest;
 import com.jnapanam.sportszone.commerce.dto.CommerceDtos.Order;
 import com.jnapanam.sportszone.commerce.service.CommerceService;
+import com.jnapanam.sportszone.commerce.service.ShopCounterService;
+import com.jnapanam.sportszone.commerce.service.CommerceAdminService;
+import com.jnapanam.sportszone.commerce.dto.ShopCounterDtos.CounterPaymentRequest;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +29,8 @@ class CommerceCheckoutIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired JdbcTemplate jdbc;
     @Autowired CommerceService commerce;
+    @Autowired ShopCounterService shopCounter;
+    @Autowired CommerceAdminService commerceAdmin;
 
     @Test
     void checkoutPersistsOrderItemsUpdatesStockAndClearsCart() throws Exception {
@@ -77,6 +82,41 @@ class CommerceCheckoutIntegrationTest {
         assertThat(value("select stock_quantity from commerce_variants where id=?", fixture.variantId())).isEqualTo(1);
         assertThat(count("select count(*) from commerce_cart_items where user_id=?", fixture.userId())).isEqualTo(1);
         assertThat(count("select count(*) from commerce_stock_movements where variant_id=?", fixture.variantId())).isZero();
+    }
+
+    @Test
+    void counterPaymentPersistsMethodReferenceCollectorAndTimestampAndIsIdempotent() throws Exception {
+        Fixture fixture = fixture(5, 1, 12_500, 0.0);
+        jdbc.update("update commerce_shop_settings set pay_at_facility_enabled=true where singleton_id=true");
+        Order order = commerce.checkout(fixture.userId(), pickupRequest("PAY_AT_PICKUP"));
+        UUID actor = fixture.userId();
+
+        shopCounter.collectOrderPayment(actor, order.id(), new CounterPaymentRequest("UPI", "  UPI-TXN-123  "));
+        shopCounter.collectOrderPayment(actor, order.id(), new CounterPaymentRequest("CASH", "SHOULD-NOT-OVERWRITE"));
+
+        assertThat(jdbc.queryForObject("select payment_status from commerce_orders where id=?", String.class, order.id())).isEqualTo("PAID");
+        assertThat(jdbc.queryForObject("select counter_payment_method from commerce_orders where id=?", String.class, order.id())).isEqualTo("UPI");
+        assertThat(jdbc.queryForObject("select payment_reference from commerce_orders where id=?", String.class, order.id())).isEqualTo("UPI-TXN-123");
+        assertThat(jdbc.queryForObject("select payment_collected_by from commerce_orders where id=?", UUID.class, order.id())).isEqualTo(actor);
+        assertThat(jdbc.queryForObject("select payment_collected_at from commerce_orders where id=?", java.time.OffsetDateTime.class, order.id())).isNotNull();
+        assertThat(commerceAdmin.orders().stream().filter(row -> order.id().equals(row.get("id"))).findFirst().orElseThrow().get("payment_collected_by_name")).isNotNull();
+    }
+
+    @Test
+    void counterPaymentRejectsUnsupportedMethodAndOverlongReference() throws Exception {
+        Fixture fixture = fixture(5, 1, 12_500, 0.0);
+        jdbc.update("update commerce_shop_settings set pay_at_facility_enabled=true where singleton_id=true");
+        Order order = commerce.checkout(fixture.userId(), pickupRequest("PAY_AT_PICKUP"));
+
+        assertThatThrownBy(() -> shopCounter.collectOrderPayment(fixture.userId(), order.id(),
+                new CounterPaymentRequest("CHEQUE", null)))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Payment method must be CASH, UPI or CARD");
+        assertThatThrownBy(() -> shopCounter.collectOrderPayment(fixture.userId(), order.id(),
+                new CounterPaymentRequest("UPI", "X".repeat(121))))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("120 characters or fewer");
+        assertThat(jdbc.queryForObject("select payment_status from commerce_orders where id=?", String.class, order.id())).isEqualTo("PENDING");
     }
 
     private Fixture fixture(int stock, int cartQuantity, long pricePaise, double taxPercent) throws Exception {

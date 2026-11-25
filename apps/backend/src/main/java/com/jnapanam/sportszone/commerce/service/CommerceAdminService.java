@@ -137,9 +137,11 @@ public class CommerceAdminService {
     }
 
     public List<Map<String, Object>> orders() {
-        return jdbc.queryForList("select id,order_number,status,fulfilment_type,payment_method,"
-                + "payment_status,original_total_paise,loyalty_points_used,loyalty_discount_paise,"
-                + "total_paise,recipient_name,mobile,created_at from commerce_orders order by created_at desc");
+        return jdbc.queryForList("select o.id,o.order_number,o.status,o.fulfilment_type,o.payment_method,"
+                + "o.payment_status,o.counter_payment_method,o.payment_reference,o.payment_collected_by,"
+                + "u.full_name as payment_collected_by_name,o.payment_collected_at,o.original_total_paise,"
+                + "o.loyalty_points_used,o.loyalty_discount_paise,o.total_paise,o.recipient_name,o.mobile,o.created_at "
+                + "from commerce_orders o left join users u on u.id=o.payment_collected_by order by o.created_at desc");
     }
 
     private Product adminProduct(ResultSet r) throws SQLException {
