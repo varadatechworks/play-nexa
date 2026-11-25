@@ -9,6 +9,7 @@ import com.jnapanam.sportszone.commerce.dto.CommerceDtos.CheckoutRequest;
 import com.jnapanam.sportszone.commerce.dto.CommerceDtos.Order;
 import com.jnapanam.sportszone.commerce.service.CommerceService;
 import com.jnapanam.sportszone.commerce.service.ShopCounterService;
+import com.jnapanam.sportszone.commerce.service.CommerceAdminService;
 import com.jnapanam.sportszone.commerce.dto.ShopCounterDtos.CounterPaymentRequest;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,7 @@ class CommerceCheckoutIntegrationTest {
     @Autowired JdbcTemplate jdbc;
     @Autowired CommerceService commerce;
     @Autowired ShopCounterService shopCounter;
+    @Autowired CommerceAdminService commerceAdmin;
 
     @Test
     void checkoutPersistsOrderItemsUpdatesStockAndClearsCart() throws Exception {
@@ -97,6 +99,7 @@ class CommerceCheckoutIntegrationTest {
         assertThat(jdbc.queryForObject("select payment_reference from commerce_orders where id=?", String.class, order.id())).isEqualTo("UPI-TXN-123");
         assertThat(jdbc.queryForObject("select payment_collected_by from commerce_orders where id=?", UUID.class, order.id())).isEqualTo(actor);
         assertThat(jdbc.queryForObject("select payment_collected_at from commerce_orders where id=?", java.time.OffsetDateTime.class, order.id())).isNotNull();
+        assertThat(commerceAdmin.orders().stream().filter(row -> order.id().equals(row.get("id"))).findFirst().orElseThrow().get("payment_collected_by_name")).isNotNull();
     }
 
     @Test
