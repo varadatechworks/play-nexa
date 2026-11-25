@@ -38,6 +38,17 @@ class TenantControlPlaneSchemaIntegrationTest {
     }
 
     @Test
+    void malformedHostnameAndUnverifiedPrimaryDomainCannotBeInserted() {
+        UUID tenant = createTenant("arena-" + UUID.randomUUID().toString().substring(0, 8));
+        assertThatThrownBy(() -> insertDomain(tenant, "-invalid.example.test"))
+                .isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> jdbc.update(
+                "insert into playnexa_tenant_domains(id,tenant_id,hostname,is_primary,verification_token_hash) values(?,?,?,?,?)",
+                UUID.randomUUID(), tenant, "valid.example.test", true, "b".repeat(64)))
+                .isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
     void invalidSlugAndDedicatedHostingModeAreRejected() {
         assertThatThrownBy(() -> jdbc.update(
                 "insert into playnexa_tenants(id,slug,display_name,hosting_mode) values(?,?,?,?)",
