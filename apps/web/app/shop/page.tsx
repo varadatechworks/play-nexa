@@ -19,7 +19,7 @@ const heroMedia=["/images/hero-sports.jpg","/images/sport-cricket.png","/images/
 
 export default function Shop(){
  const {user,language}=useApp();const [settings,setSettings]=useState<Settings|null>(null);const [products,setProducts]=useState<Product[]>([]);const [productsError,setProductsError]=useState("");
- const [cart,setCart]=useState<Cart>({items:[],subtotalPaise:0});const [quote,setQuote]=useState<Quote|null>(null);const [points,setPoints]=useState(0);
+ const [cart,setCart]=useState<Cart>({items:[],subtotalPaise:0});const [quote,setQuote]=useState<Quote|null>(null);const [points,setPoints]=useState(0);const [fulfilmentType,setFulfilmentType]=useState<"PICKUP"|"DELIVERY">("PICKUP");const [deliveryAddress,setDeliveryAddress]=useState({addressLine:"",city:"",state:"",postalCode:""});
  const [orders,setOrders]=useState<Order[]>([]);const [tab,setTab]=useState("shop");const [message,setMessage]=useState("");const [messageKind,setMessageKind]=useState<"success"|"warning"|"error"|"info">("info");const [loading,setLoading]=useState(true);const [heroIndex,setHeroIndex]=useState(0);
  const load=useCallback(async(preserveFeedback=false)=>{setLoading(true);let hasUsableSettings=false;let partialFailure=false;try{
    // A catalogue outage must not take down shop settings, cart or order history.
