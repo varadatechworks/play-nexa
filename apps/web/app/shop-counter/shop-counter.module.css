@@ -12,3 +12,5 @@
 .catalog article,.pos,.returns,.row{min-width:0}.catalog article>*,.row>*{min-width:0;overflow-wrap:anywhere}
 .checkout :is(input,select),.returnForm :is(input,select,textarea){width:100%;max-width:100%;min-width:0}
 @media(max-width:490px){.page{padding:14px}.catalog article{grid-template-columns:minmax(0,1fr)}.qty{grid-column:1}.row{flex-wrap:wrap}}
+
+.audit{display:grid;gap:4px;margin-top:10px;padding:10px 12px;border-radius:10px;background:#f4f7ed;border:1px solid #dfe8d4;color:var(--olive,#28330f)}.audit span{font-weight:750}.audit small{color:var(--muted,#66705d)}.collectForm{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px;padding:14px;background:#fff9ef;border:1px solid var(--line,#e4d6be);border-radius:12px}.collectForm label{display:grid;gap:6px;font-size:13px;font-weight:800}.collectForm input,.collectForm select{width:100%;min-height:42px;border:1px solid var(--line,#e4d6be);border-radius:9px;padding:9px 10px;background:#fff}.collectForm .actions{grid-column:1/-1;margin-top:0}.collectForm .danger{background:#a32613}@media(max-width:600px){.collectForm{grid-template-columns:1fr}.collectForm .actions{grid-column:1}}
