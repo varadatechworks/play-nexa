@@ -32,3 +32,7 @@ test('cart mutations distinguish successful write from failed totals refresh',as
  assert.match(shop,/messageKind==="error"\?"alert":"status"/);
  for(const cls of ['messageSuccess','messageWarning','messageError'])assert.ok(css.includes('.'+cls));
 });
+
+
+test("PlayNexa shop delivery checkout validates address and shows tax and delivery estimates",async()=>{const shop=await source("app/shop/page.tsx");const css=await source("app/shop/shop.module.css");assert.match(shop,/settings\.deliveryEnabled/);assert.match(shop,/fulfilmentType,paymentMethod:"PAY_AT_PICKUP"/);assert.match(shop,/valid six-digit PIN code/);for(const field of ["addressLine","city","state","postalCode"])assert.ok(shop.includes(field));assert.match(shop,/settings\.deliveryFeePaise/);assert.match(shop,/taxEstimatePaise/);assert.match(css,/\.deliveryFields/);assert.match(css,/\.fulfilment/);});
+test("delivery checkout uses facility collection semantics and strips non-numeric PIN characters",async()=>{const shop=await source("app/shop/page.tsx");assert.match(shop,/at the facility before delivery/);assert.match(shop,/Place delivery order · pay at facility/);assert.match(shop,/replace\(\/\\D\/g,""\)\.slice\(0,6\)/);});
