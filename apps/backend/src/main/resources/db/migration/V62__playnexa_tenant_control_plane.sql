@@ -16,7 +16,7 @@ CREATE TABLE playnexa_tenant_domains (
  verification_status VARCHAR(24) NOT NULL DEFAULT 'PENDING' CHECK (verification_status IN ('PENDING','VERIFIED','REVOKED')),
  verification_method VARCHAR(16) NOT NULL DEFAULT 'DNS_TXT' CHECK (verification_method = 'DNS_TXT'),
  verification_token_hash CHAR(64) NOT NULL, verified_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
- CHECK (hostname = lower(hostname)), CHECK (hostname !~ '(^\\.|\\.$|\\.\\.|[^a-z0-9.-])'),
+ CHECK (hostname = lower(hostname)), CHECK (hostname ~ '^[a-z0-9]([a-z0-9-]*[a-z0-9])?([.][a-z0-9]([a-z0-9-]*[a-z0-9])?)*$'),
  CHECK ((verification_status = 'VERIFIED') = (verified_at IS NOT NULL)), UNIQUE (tenant_id, hostname)
 );
 CREATE UNIQUE INDEX playnexa_tenant_domains_hostname_uq ON playnexa_tenant_domains(hostname);
