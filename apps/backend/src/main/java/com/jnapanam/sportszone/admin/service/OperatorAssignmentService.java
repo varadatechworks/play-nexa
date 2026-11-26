@@ -16,6 +16,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -152,8 +155,10 @@ public class OperatorAssignmentService {
 
     private User requireOperator(UUID id) {
         User user = users.findById(id).orElseThrow(() -> new NotFoundException("Operator not found"));
-        boolean operator = user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.OPERATIONS);
-        if (!operator) throw new ConflictException("User does not have the Operations role");
+        boolean operator = TenantContextHolder.get() != null
+                ? hasCurrentAuthority(id, "ROLE_OPERATIONS", "ROLE_OPERATOR")
+                : user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.OPERATIONS);
+        if (!operator) throw new ConflictException("User does not have the Operations role in this arena");
         return user;
     }
 
@@ -163,7 +168,26 @@ public class OperatorAssignmentService {
     }
 
     private boolean isAdministrator(UUID id) {
+        if (TenantContextHolder.get() != null) {
+            return hasCurrentAuthority(id, "ROLE_ADMIN", "ROLE_SUPER_ADMIN");
+        }
         User user = users.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
         return user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.ADMIN || r.getName() == RoleName.SUPER_ADMIN);
+    }
+
+    private boolean hasCurrentAuthority(UUID actorId, String... expectedAuthorities) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) return false;
+        try {
+            if (!actorId.equals(UUID.fromString(authentication.getName()))) return false;
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
+        for (GrantedAuthority authority : authentication.getAuthorities()) {
+            for (String expected : expectedAuthorities) {
+                if (expected.equals(authority.getAuthority())) return true;
+            }
+        }
+        return false;
     }
 }
