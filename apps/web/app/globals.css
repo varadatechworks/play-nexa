@@ -375,3 +375,11 @@
 .portal-dialog{max-height:calc(100dvh - 2.5rem);overflow-y:auto;overscroll-behavior:contain;min-height:0}
 .booking-detail-grid strong,.booking-detail-grid span{overflow-wrap:anywhere;word-break:break-word}
 @media(max-width:520px){.booking-detail-grid{grid-template-columns:minmax(0,1fr)}}
+
+.admin-refund-calculator{display:grid;gap:10px;padding:16px;margin:14px 0;border:1px solid var(--border,#dce5df);border-radius:14px;background:var(--surface-muted,#f7faf8)}
+.admin-refund-calculator>p{margin:0;color:var(--muted,#58685e);font-size:13px;line-height:1.5}
+.admin-refund-calculator>p strong{color:var(--foreground,#1c2c22)}
+.admin-refund-calculator label{display:grid;gap:6px;font-size:13px;font-weight:700;color:var(--foreground,#1c2c22)}
+.admin-refund-calculator input,.admin-refund-calculator textarea{width:100%;padding:10px 12px;border:1px solid var(--border,#dce5df);border-radius:9px;background:var(--surface,#fff);color:var(--foreground,#1c2c22)}
+.admin-refund-calculator details{padding-top:8px;border-top:1px solid var(--border,#dce5df);font-size:12px}
+.admin-refund-calculator details p{margin:8px 0;color:var(--muted,#58685e)}
