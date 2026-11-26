@@ -2,7 +2,7 @@
 
 ## Source revision reviewed
 
-Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merged PR #91 and PRs #97–#112 plus #114. PR #102 was superseded by #104 and was not ported separately. PR #113 remains open and is superseded by merged #114 for front-desk assignment scope. PR #116 is still open; its organizer-owned-tournament standings restriction has been independently implemented in PlayNexa as a security fix, without claiming the Jnapanam PR is merged. Merged #115 adds assigned-facility equipment inventory scope and is ported below. Jnapanam remains the reference product; PlayNexa keeps its own branding, hosting model, tenant control-plane and deployment configuration.
+Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merged PR #91 and PRs #97–#112 plus #114. PR #102 was superseded by #104 and was not ported separately. PR #113 remains open and is superseded by merged #114 for front-desk assignment scope. PR #116 is still open; its organizer-owned-tournament standings restriction was independently implemented in PlayNexa through PR #19. This follow-up also makes tournament organizer approval, creation and admin selection use ACTIVE tenant memberships when tenant context is present, without claiming the Jnapanam PR is merged. Merged #115 adds assigned-facility equipment inventory scope and is ported below. Jnapanam remains the reference product; PlayNexa keeps its own branding, hosting model, tenant control-plane and deployment configuration.
 
 ## Ported to PlayNexa in this branch
 
@@ -37,6 +37,7 @@ Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merg
 - Tenant membership role `OPERATOR` maps to PlayNexa's actual `ROLE_OPERATIONS`; `ORGANIZER` is also tenant-scoped so global JWT roles cannot grant organizer access across arenas.
 - Operator assignment authorization checks ACTIVE tenant memberships when tenant context is present; global ADMIN cannot bypass facility scoping in another tenant. Platform SUPER_ADMIN remains the explicit platform-wide bypass.
 - The open Jnapanam #116 identified that an organizer could update standings for another organizer's tournament. PlayNexa independently checks the authenticated organizer against `TournamentService.managedBy` before accepting standings updates; ADMIN/SUPER_ADMIN retain their intended broader authority.
+- Tournament organizer approval, organizer creation and the admin organizer picker now read/write ACTIVE membership roles for the current tenant. Global ORGANIZER/ADMIN roles cannot substitute for membership when tenant context is active.
 - PlayNexa's marketplace remains deferred.
 
 ## Verification still required
