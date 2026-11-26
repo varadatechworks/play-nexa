@@ -8,9 +8,10 @@
 - Tenant membership authorization runs after JWT authentication. It replaces global tenant-admin/operator/coach/shopkeeper/customer roles with the role attached to the resolved tenant.
 - Customer users are enrolled as CUSTOMER in a tenant on first authenticated visit; privileged roles require an explicit ACTIVE tenant membership. SUPER_ADMIN remains a platform-level role.
 - Operator assignment, front-desk and equipment-inventory authorization consults ACTIVE tenant membership when tenant context is present. A global ADMIN role cannot bypass another tenant's operator facility scope; platform SUPER_ADMIN retains the platform-wide bypass.
+- Organizer standings updates are limited to tournaments owned by the authenticated organizer; tenant ADMIN/SUPER_ADMIN roles retain broader administration rights.
 - Context is cleared in a finally block at request completion. Health checks do not require tenant context.
 - The context filter is opt-in through `PLAYNEXA_TENANT_CONTEXT_ENABLED=false` by default. Existing dedicated deployments remain unchanged until their tenant registry and memberships are provisioned.
-- `SharedHostingSafetyGateFilter` continues to return 503 for SaaS/unknown modes. `ProductionConfigurationGuard` only accepts the three dedicated hosting configurations; SaaS remains rejected.
+- `TenantContextFilter` returns 503 for shared SaaS using a hard-coded code-level certification constant. `PLAYNEXA_SHARED_SAAS_READY=true` alone cannot open the gate. `ProductionConfigurationGuard` also rejects shared SaaS in production.
 
 ## Explicitly not complete
 
@@ -29,4 +30,4 @@ This foundation is **not** tenant data-plane isolation and does not authorize sh
 ## Current release decision
 
 - Customer-hosted and PlayNexa-managed single-tenant modes are permitted by configuration, but require a provisioned tenant ID and verified deployment-specific setup before enabling tenant context.
-- Shared multi-tenant SaaS remains **disabled**. The 503 safety gate and production configuration guard must not be removed until every item above is verified in CI and a hostile cross-tenant review is complete.
+- Shared multi-tenant SaaS remains **disabled**. The hard-coded 503 safety gate and production configuration guard must not be changed until every item above is verified in CI and a hostile cross-tenant review is complete.

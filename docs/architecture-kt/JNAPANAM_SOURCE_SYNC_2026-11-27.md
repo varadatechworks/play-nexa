@@ -2,7 +2,7 @@
 
 ## Source revision reviewed
 
-Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merged PR #91 and PRs #97–#112 plus #114. PR #102 was superseded by #104 and was not ported separately. Open PRs #113 and #116 are not ported yet. Merged #114 provides slot-level front-desk scope; merged #115 adds assigned-facility equipment inventory scope and is ported below. Jnapanam remains the reference product; PlayNexa keeps its own branding, hosting model, tenant control-plane and deployment configuration.
+Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merged PR #91 and PRs #97–#112 plus #114. PR #102 was superseded by #104 and was not ported separately. PR #113 remains open and is superseded by merged #114 for front-desk assignment scope. PR #116 is still open; its organizer-owned-tournament standings restriction has been independently implemented in PlayNexa as a security fix, without claiming the Jnapanam PR is merged. Merged #115 adds assigned-facility equipment inventory scope and is ported below. Jnapanam remains the reference product; PlayNexa keeps its own branding, hosting model, tenant control-plane and deployment configuration.
 
 ## Ported to PlayNexa in this branch
 
@@ -36,6 +36,7 @@ Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merg
 - Jnapanam branding, domains, credentials, app identifiers and production environment values were not copied.
 - Tenant membership role `OPERATOR` maps to PlayNexa's actual `ROLE_OPERATIONS`; `ORGANIZER` is also tenant-scoped so global JWT roles cannot grant organizer access across arenas.
 - Operator assignment authorization checks ACTIVE tenant memberships when tenant context is present; global ADMIN cannot bypass facility scoping in another tenant. Platform SUPER_ADMIN remains the explicit platform-wide bypass.
+- The open Jnapanam #116 identified that an organizer could update standings for another organizer's tournament. PlayNexa independently checks the authenticated organizer against `TournamentService.managedBy` before accepting standings updates; ADMIN/SUPER_ADMIN retain their intended broader authority.
 - PlayNexa's marketplace remains deferred.
 
 ## Verification still required
@@ -48,4 +49,4 @@ Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merg
 
 ## Tenant-isolation gate
 
-Shared SaaS remains disabled. Before opening it, implement transaction-scoped tenant context, database-enforced row policies or equivalent tenant-boundary controls, composite tenant relationships, and hostile cross-tenant read/write/delete tests across every tenant-owned table and asynchronous path. PostgreSQL row-level security must be tested using the actual least-privileged application role; table owners and BYPASSRLS roles can bypass ordinary policies, and pooled connections require transaction-local tenant context. See the PostgreSQL [row security documentation](https://www.postgresql.org/docs/current/ddl-rowsecurity.html).
+Shared SaaS remains disabled by a hard-coded code-level certification gate; `PLAYNEXA_SHARED_SAAS_READY=true` alone cannot enable it. Before opening it, implement transaction-scoped tenant context, database-enforced row policies or equivalent tenant-boundary controls, composite tenant relationships, and hostile cross-tenant read/write/delete tests across every tenant-owned table and asynchronous path. PostgreSQL row-level security must be tested using the actual least-privileged application role; table owners and BYPASSRLS roles can bypass ordinary policies, and pooled connections require transaction-local tenant context. See the PostgreSQL [row security documentation](https://www.postgresql.org/docs/current/ddl-rowsecurity.html).
