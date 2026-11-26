@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ApiError, api, restoreSession } from "@/lib/api";
+import { ApiError, api, loadCurrentUserProfile } from "@/lib/api";
 import { useApp } from "@/components/app-provider";
 import styles from "../admin/users/users.module.css";
 
@@ -18,7 +18,7 @@ export default function TenantInvitationPage() {
       setError("");
       await api<void>("/api/v1/tenant-memberships/me/accept", { method: "POST" });
       setAccepted(true);
-      const refreshed = await restoreSession().catch(() => null);
+      const refreshed = await loadCurrentUserProfile().catch(() => null);
       if (refreshed) setUser(refreshed);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
