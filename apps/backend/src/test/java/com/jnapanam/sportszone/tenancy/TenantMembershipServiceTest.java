@@ -67,6 +67,30 @@ class TenantMembershipServiceTest {
     }
 
     @Test
+    void tenantAdminCanAddAnExistingAccountByEmail() {
+        when(users.findByEmailIgnoreCase("operator@example.test")).thenReturn(Optional.of(target));
+        when(jdbc.update(anyString(), any(Object[].class))).thenReturn(1);
+
+        TenantMembershipResponse response = service.addByEmail(actorId,
+                new TenantMembershipInviteRequest("operator@example.test",
+                        TenantMembershipRole.OPERATOR, TenantMembershipStatus.INVITED));
+
+        assertThat(response.userId()).isEqualTo(targetId);
+        assertThat(response.membershipStatus()).isEqualTo("INVITED");
+        verify(users).findByEmailIgnoreCase("operator@example.test");
+    }
+
+    @Test
+    void tenantAdminCannotAddAnEmailWithoutAnExistingAccount() {
+        when(users.findByEmailIgnoreCase("missing@example.test")).thenReturn(Optional.empty());
+
+        assertThrows(com.jnapanam.sportszone.common.exception.NotFoundException.class,
+                () -> service.addByEmail(actorId, new TenantMembershipInviteRequest("missing@example.test",
+                        TenantMembershipRole.CUSTOMER, TenantMembershipStatus.INVITED)));
+        verify(jdbc, never()).update(anyString(), any(Object[].class));
+    }
+
+    @Test
     void tenantAdminCanAssignAnActiveOperatorMembership() {
         when(jdbc.update(anyString(), any(Object[].class))).thenReturn(1);
 
