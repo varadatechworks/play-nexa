@@ -37,3 +37,6 @@ This foundation is **not** tenant data-plane isolation and does not authorize sh
 ## Tenant membership administration
 
 With tenant context enabled, an active OWNER/ADMIN can list, add by email, update, suspend and revoke tenant memberships through `GET /api/v1/admin/tenant-memberships`, `POST /api/v1/admin/tenant-memberships`, `PUT /api/v1/admin/tenant-memberships/{userId}` and `DELETE /api/v1/admin/tenant-memberships/{userId}`. OWNER is bootstrap-only and cannot be changed or revoked through this API. Global `/api/v1/admin/users` management is restricted to platform SUPER_ADMIN while tenant context is active, preventing tenant administrators from changing the platform-wide user directory.
+
+
+- `GET /api/v1/tenant-memberships/me` is a self-only endpoint used to derive the current tenant role for UI navigation. It may auto-enroll an active global CUSTOMER as a tenant CUSTOMER; it never auto-enrolls privileged roles. INVITED users can still load their own profile and accept their invitation, but no other protected API access is granted until membership is ACTIVE.
