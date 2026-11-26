@@ -85,6 +85,19 @@ class TenantMembershipAuthorizationFilterTest {
     }
 
     @Test
+    void publicCatalogueRemainsAvailableToAuthenticatedUsersWithoutMembership() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                userId.toString(), null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+        var response = new MockHttpServletResponse();
+
+        filter.doFilter(new MockHttpServletRequest("GET", "/api/v1/commerce/products"),
+                response, new MockFilterChain());
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        verifyNoInteractions(jdbc);
+    }
+
+    @Test
     void platformSuperAdminCanManageTenantWithoutARegularMembership() throws Exception {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 userId.toString(), null, List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"))));
