@@ -1,5 +1,6 @@
 package com.jnapanam.sportszone.security;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +31,7 @@ public class ProductionConfigurationGuard {
         require("DB_USERNAME",missing);
         require("DB_PASSWORD",missing);
         require("JWT_SECRET",missing);
+        require("JWT_ISSUER",missing);
         require("RAZORPAY_KEY_ID",missing);
         require("RAZORPAY_KEY_SECRET",missing);
         require("RAZORPAY_WEBHOOK_SECRET",missing);
@@ -40,6 +42,16 @@ public class ProductionConfigurationGuard {
         if (Boolean.parseBoolean(value("app.security.expose-development-reset-token",
                 value("EXPOSE_DEVELOPMENT_RESET_TOKEN","false"))))
             missing.add("EXPOSE_DEVELOPMENT_RESET_TOKEN must be false");
+        String issuer=value("JWT_ISSUER","");
+        try {
+            URI issuerUri=URI.create(issuer);
+            if (!"https".equalsIgnoreCase(issuerUri.getScheme()) || issuerUri.getHost()==null
+                    || issuerUri.getHost().endsWith(".invalid") || "localhost".equalsIgnoreCase(issuerUri.getHost())
+                    || issuerUri.getRawUserInfo()!=null || issuerUri.getFragment()!=null)
+                missing.add("JWT_ISSUER must be a canonical public HTTPS URL");
+        } catch (RuntimeException ex) {
+            missing.add("JWT_ISSUER must be a canonical public HTTPS URL");
+        }
         String jwt=value("JWT_SECRET","");
         if (jwt.length()<32 || jwt.equals("Sm5hcGFuYW0gU3BvcnRzIFpvbmUgRGV2ZWxvcG1lbnQgSldUIFNlY3JldCAyMDI2IQ==")
                 || jwt.equals("UGxheU5leGEgRGV2ZWxvcG1lbnQgSldUIFNlY3JldCAyMDI2IQ=="))
