@@ -29,7 +29,7 @@ class TokenServiceTest {
         String token = service.createAccessToken(user).value();
         JwtDecoder decoder = NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.HS256).build();
 
-        assertThat(decoder.decode(token).getIssuer().toString()).isEqualTo("playnexa");
+        assertThat(decoder.decode(token).getIssuer().toString()).isEqualTo("https://playnexa.invalid");
     }
 
     @Test void rejectsShortSecrets() {
