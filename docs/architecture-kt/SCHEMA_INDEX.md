@@ -1,5 +1,5 @@
 # PlayNexa — Complete Source Migration Catalog Index
-> All **59** SQL migration files on `main` were scanned in five ordered sections on 2026-11-09; source-derived, **not** confirmed deployed database state.
+> All **64** SQL migration files on this branch were indexed in six ordered sections on 2026-11-27; source-derived, **not** confirmed deployed database state.
 
 | Files in migration order | Documentation |
 |---|---|
@@ -8,6 +8,7 @@
 | 29–42 | [Part 3: table/column dictionary and ER](SCHEMA_MIGRATIONS_03.md) |
 | 43–56 | [Part 4: table/column dictionary and ER](SCHEMA_MIGRATIONS_04.md) |
 | 57–59 | [Part 5: table/column dictionary and ER](SCHEMA_MIGRATIONS_05.md) |
+| 60–64 | [Part 6: PlayNexa branding, counter audit, tenant control plane and refund deductions](SCHEMA_MIGRATIONS_06.md) |
 
 See [architecture, deployment and KT runbook](README.md) and [controlled migration script](migrate-safe.sh).
 
