@@ -2,7 +2,7 @@
 
 ## Source revision reviewed
 
-Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merged PR #91 and PRs #97–#112 plus #114. PR #102 was superseded by #104 and was not ported separately. Open PRs #113 and #115 are not ported; #114 provides the merged slot-level front-desk scope, while #115 equipment inventory scope awaits merge. Jnapanam remains the reference product; PlayNexa keeps its own branding, hosting model, tenant control-plane and deployment configuration.
+Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merged PR #91 and PRs #97–#112 plus #114. PR #102 was superseded by #104 and was not ported separately. Open PRs #113 and #116 are not ported yet. Merged #114 provides slot-level front-desk scope; merged #115 adds assigned-facility equipment inventory scope and is ported below. Jnapanam remains the reference product; PlayNexa keeps its own branding, hosting model, tenant control-plane and deployment configuration.
 
 ## Ported to PlayNexa in this branch
 
@@ -25,6 +25,7 @@ Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merg
 | #111 | Venue self-check-in uses venue-local date/time, a pessimistic booking-number lock, and accepts only PAID or NOT_REQUIRED bookings. PlayNexa keeps configurable `ARENA_TIME_ZONE` (default Asia/Kolkata) and `ARENA_VENUE_CODE` (default PLAYNEXA) rather than copying Jnapanam's hard-coded venue identity. |
 | #112 | Ported the self-check-in regression suite, adapted to PlayNexa booking references, including owner privacy, payment state, booking date and duplicate check-in guards. |
 | #114 | Operator front-desk walk-ins are checked against the assigned slot's facility; emergency closure is checked against the assigned facility. Added service-level tests for slot and facility scope. |
+| #115 | Equipment inventory reads are filtered to an operator's assigned facilities; writes require a selected assigned facility. Administrators retain global inventory access. Added controller regression tests. |
 
 ## Implementation notes
 
