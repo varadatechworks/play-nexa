@@ -119,6 +119,42 @@ class CommerceCheckoutIntegrationTest {
         assertThat(jdbc.queryForObject("select payment_status from commerce_orders where id=?", String.class, order.id())).isEqualTo("PENDING");
     }
 
+    @Test
+    void customerCancellationRestoresRedeemedShopPointsAndIsIdempotent() throws Exception {
+        Fixture fixture = fixture(5, 1, 12_500, 0.0);
+        jdbc.update("update commerce_shop_settings set pay_at_facility_enabled=true where singleton_id=true");
+        jdbc.update("insert into loyalty_wallets(user_id,points_balance,lifetime_earned,lifetime_redeemed,updated_at,version) values(?,?,?,0,now(),0)",
+                fixture.userId(), 5, 5);
+        CheckoutRequest request = new CheckoutRequest("PICKUP", "PAY_AT_PICKUP", "Commerce Customer", "8296022107",
+                null, null, null, null, 2L);
+        Order order = commerce.checkout(fixture.userId(), request);
+        assertThat(value("select points_balance from loyalty_wallets where user_id=?", fixture.userId())).isEqualTo(3);
+        assertThat(value("select lifetime_redeemed from loyalty_wallets where user_id=?", fixture.userId())).isEqualTo(2);
+
+        commerce.cancel(fixture.userId(), order.id(), "Customer cancelled before collection");
+        assertThat(value("select points_balance from loyalty_wallets where user_id=?", fixture.userId())).isEqualTo(5);
+        assertThat(value("select lifetime_redeemed from loyalty_wallets where user_id=?", fixture.userId())).isZero();
+        assertThat(count("select count(*) from loyalty_transactions where user_id=? and transaction_type='REVERSAL'", fixture.userId())).isEqualTo(1);
+        assertThatThrownBy(() -> commerce.cancel(fixture.userId(), order.id(), "Duplicate cancellation"))
+                .isInstanceOf(com.jnapanam.sportszone.common.exception.ConflictException.class);
+        assertThat(value("select points_balance from loyalty_wallets where user_id=?", fixture.userId())).isEqualTo(5);
+        assertThat(count("select count(*) from loyalty_transactions where user_id=? and transaction_type='REVERSAL'", fixture.userId())).isEqualTo(1);
+    }
+
+    @Test
+    void paidCounterOrderCannotBeCancelledOrRestocked() throws Exception {
+        Fixture fixture = fixture(5, 1, 12_500, 0.0);
+        jdbc.update("update commerce_shop_settings set pay_at_facility_enabled=true where singleton_id=true");
+        Order order = commerce.checkout(fixture.userId(), pickupRequest("PAY_AT_PICKUP"));
+        shopCounter.collectOrderPayment(fixture.userId(), order.id(), new CounterPaymentRequest("CASH", null));
+
+        assertThatThrownBy(() -> commerce.cancel(fixture.userId(), order.id(), "Customer changed mind"))
+                .isInstanceOf(com.jnapanam.sportszone.common.exception.ConflictException.class)
+                .hasMessageContaining("Order status changed");
+        assertThat(value("select stock_quantity from commerce_variants where id=?", fixture.variantId())).isEqualTo(4);
+        assertThat(jdbc.queryForObject("select status from commerce_orders where id=?", String.class, order.id())).isEqualTo("CONFIRMED");
+    }
+
     private Fixture fixture(int stock, int cartQuantity, long pricePaise, double taxPercent) throws Exception {
         String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
         String email = "commerce." + suffix.toLowerCase() + "@example.com";
