@@ -18,6 +18,7 @@ valid=(
 )
 
 env "${valid[@]}" bash "$PROVISION" --validate-only >/dev/null
+env "${valid[@]}" HOSTING_MODE=PLAYNEXA_MANAGED_SINGLE_TENANT bash "$PROVISION" --validate-only >/dev/null
 
 expect_invalid() {
   if env "${valid[@]}" "$@" bash "$PROVISION" --validate-only >/dev/null 2>&1; then
@@ -30,6 +31,7 @@ expect_invalid HOSTING_MODE=MULTI_TENANT_SAAS
 expect_invalid TENANT_SLUG=Bad_Slug
 expect_invalid CONFIRM_OWNER_USER_ID=33333333-3333-4333-8333-333333333333
 expect_invalid TENANT_ID=not-a-uuid
+expect_invalid PLAN_CODE=bad-code
 
 if bash "$PROVISION" --validate-only >/dev/null 2>&1; then
   printf 'Expected missing required environment to fail\n' >&2
