@@ -9,6 +9,7 @@ import com.jnapanam.sportszone.common.exception.ConflictException;
 import com.jnapanam.sportszone.common.exception.NotFoundException;
 import com.jnapanam.sportszone.identity.model.User;
 import com.jnapanam.sportszone.identity.repository.UserRepository;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -23,6 +24,7 @@ public class VenueCheckInService {
     public static final String VENUE_CODE = "PLAYNEXA";
     private static final int EARLY_MINUTES = 30;
     private ZoneId venueZone = ZoneId.of("Asia/Kolkata");
+    private Clock clock = Clock.system(venueZone);
 
     @Value("${ARENA_VENUE_CODE:PLAYNEXA}")
     private String configuredVenueCode;
@@ -30,7 +32,10 @@ public class VenueCheckInService {
     @Value("${ARENA_TIME_ZONE:Asia/Kolkata}")
     public void setVenueTimeZone(String timeZone) {
         this.venueZone = ZoneId.of(timeZone);
+        this.clock = Clock.system(venueZone);
     }
+
+    void setClock(Clock clock) { this.clock = clock; }
 
     private final BookingRepository bookings;
     private final UserRepository users;
@@ -44,7 +49,7 @@ public class VenueCheckInService {
     public List<BookingResponse> eligible(UUID userId, String venueCode) {
         validateVenue(venueCode);
         return bookings.findByUserIdOrderByConfirmedAtDesc(userId).stream()
-                .filter(b -> b.getSlot().getDate().equals(LocalDate.now(venueZone)))
+                .filter(b -> b.getSlot().getDate().equals(LocalDate.now(clock)))
                 .filter(b -> b.getStatus() == BookingStatus.CONFIRMED)
                 .filter(b -> b.getCheckedInAt() == null)
                 .filter(b -> b.getPaymentStatus() == BookingPaymentStatus.PAID
@@ -65,7 +70,7 @@ public class VenueCheckInService {
             throw new ConflictException("Payment is not confirmed — contact the operator before check-in");
         }
         if (booking.getCheckedInAt() != null) throw new ConflictException("Booking is already checked in");
-        LocalDateTime now = LocalDateTime.now(venueZone);
+        LocalDateTime now = LocalDateTime.now(clock);
         LocalDateTime opens = LocalDateTime.of(booking.getSlot().getDate(), booking.getSlot().getStartTime()).minusMinutes(EARLY_MINUTES);
         LocalDateTime closes = LocalDateTime.of(booking.getSlot().getDate(), booking.getSlot().getEndTime());
         if (now.isBefore(opens)) throw new ConflictException("QR check-in opens 30 minutes before the slot");
