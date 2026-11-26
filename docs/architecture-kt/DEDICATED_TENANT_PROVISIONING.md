@@ -44,7 +44,7 @@ bash scripts/provision-dedicated-tenant.sh
 The script uses one PostgreSQL transaction and parameterized psql literals. It:
 
 - Creates or idempotently activates the tenant registry row, but rejects an existing tenant ID with a different slug or hosting mode.
-- Creates an ACTIVE subscription if one does not already exist. Existing subscription states are not silently reactivated or overwritten.
+- Creates an ACTIVE subscription if one does not already exist. Existing subscription states are not silently reactivated or overwritten; provisioning aborts if the existing state is not TRIAL or ACTIVE.
 - Adds or confirms the specified user's ACTIVE OWNER membership.
 - Refuses to proceed if a different active OWNER already exists.
 - Rolls back all changes if any validation or database statement fails.
