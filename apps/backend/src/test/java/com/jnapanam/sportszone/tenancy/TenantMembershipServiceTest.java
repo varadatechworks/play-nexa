@@ -128,6 +128,31 @@ class TenantMembershipServiceTest {
     }
 
     @Test
+    void invitedUserCanAcceptMembershipInTheCurrentTenant() {
+        when(jdbc.update(anyString(), any(Object[].class))).thenReturn(1);
+
+        service.acceptInvitation(targetId);
+
+        verify(jdbc).update(contains("membership_status='INVITED'"), any(Object[].class));
+    }
+
+    @Test
+    void acceptingAlreadyActiveMembershipIsIdempotent() {
+        when(jdbc.update(anyString(), any(Object[].class))).thenReturn(0);
+        when(jdbc.queryForObject(anyString(), eq(String.class), eq(tenantId), eq(targetId))).thenReturn("ACTIVE");
+
+        service.acceptInvitation(targetId);
+    }
+
+    @Test
+    void revokedInvitationCannotBeAccepted() {
+        when(jdbc.update(anyString(), any(Object[].class))).thenReturn(0);
+        when(jdbc.queryForObject(anyString(), eq(String.class), eq(tenantId), eq(targetId))).thenReturn("REVOKED");
+
+        assertThrows(ConflictException.class, () -> service.acceptInvitation(targetId));
+    }
+
+    @Test
     void tenantContextIsRequiredForMembershipAdministration() {
         TenantContextHolder.clear();
 
