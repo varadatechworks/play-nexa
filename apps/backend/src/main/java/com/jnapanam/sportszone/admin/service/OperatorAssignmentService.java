@@ -8,6 +8,8 @@ import com.jnapanam.sportszone.common.exception.NotFoundException;
 import com.jnapanam.sportszone.identity.model.RoleName;
 import com.jnapanam.sportszone.identity.model.User;
 import com.jnapanam.sportszone.identity.repository.UserRepository;
+import com.jnapanam.sportszone.tenancy.TenantContext;
+import com.jnapanam.sportszone.tenancy.TenantContextHolder;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -152,8 +154,10 @@ public class OperatorAssignmentService {
 
     private User requireOperator(UUID id) {
         User user = users.findById(id).orElseThrow(() -> new NotFoundException("Operator not found"));
-        boolean operator = user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.OPERATIONS);
-        if (!operator) throw new ConflictException("User does not have the Operations role");
+        boolean operator = TenantContextHolder.get() != null
+                ? hasTenantRole(id, "OPERATOR")
+                : user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.OPERATIONS);
+        if (!operator) throw new ConflictException("User does not have the Operations role in this arena");
         return user;
     }
 
@@ -164,6 +168,19 @@ public class OperatorAssignmentService {
 
     private boolean isAdministrator(UUID id) {
         User user = users.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
-        return user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.ADMIN || r.getName() == RoleName.SUPER_ADMIN);
+        if (user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.SUPER_ADMIN)) return true;
+        if (TenantContextHolder.get() != null) {
+            return hasTenantRole(id, "OWNER") || hasTenantRole(id, "ADMIN");
+        }
+        return user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.ADMIN);
+    }
+
+    private boolean hasTenantRole(UUID userId, String role) {
+        TenantContext tenant = TenantContextHolder.get();
+        if (tenant == null) return false;
+        Integer count = jdbc.queryForObject("select count(*) from playnexa_tenant_memberships "
+                        + "where tenant_id=? and user_id=? and membership_status='ACTIVE' and role=?",
+                Integer.class, tenant.tenantId(), userId, role);
+        return count != null && count > 0;
     }
 }
