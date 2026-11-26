@@ -53,7 +53,11 @@ async function apiResponseError(response: Response,path:string):Promise<ApiError
     return new ApiError(status,"Invalid email/mobile or password. Please try again.",{code:"INVALID_CREDENTIALS"});
   }
   if(status===401)return new ApiError(status,"Your session has expired. Please sign in again.");
-  if(status===403)return new ApiError(status,"You do not have permission to perform this action.");
+  if(status===403) {
+    if(body?.code==="PLATFORM_ADMIN_REQUIRED")
+      return new ApiError(status,"Platform administrator access is required for the global user directory.",{code:"PLATFORM_ADMIN_REQUIRED"});
+    return new ApiError(status,"You do not have permission to perform this action.",body);
+  }
   if(status===404)return new ApiError(status,"The requested information could not be found. Please refresh and try again.");
   if(status===408||status===504)return new ApiError(status,"The request took too long. Please try again."+supportReference(response));
   if(status===413)return new ApiError(status,"This file is too large. Please choose a smaller file and try again.");
