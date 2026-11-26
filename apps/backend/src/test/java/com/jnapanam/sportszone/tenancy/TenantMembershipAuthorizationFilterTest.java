@@ -126,6 +126,19 @@ class TenantMembershipAuthorizationFilterTest {
     }
 
     @Test
+    void authenticatedUserCanReadOnlyTheirOwnTenantMembershipState() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                userId.toString(), null, List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"))));
+        var response = new MockHttpServletResponse();
+
+        filter.doFilter(new MockHttpServletRequest("GET", "/api/v1/tenant-memberships/me"),
+                response, new MockFilterChain());
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        verifyNoInteractions(jdbc);
+    }
+
+    @Test
     void invitedCustomerCanReachOnlyTheInvitationAcceptanceRoute() throws Exception {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 userId.toString(), null, List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"))));
