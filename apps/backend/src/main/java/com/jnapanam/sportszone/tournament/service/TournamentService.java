@@ -89,16 +89,16 @@ public class TournamentService {
                     order by created_at
                     """, (rs, row) -> rs.getObject("user_id", UUID.class), tenant.tenantId());
             for (User user : users.findAllById(memberIds)) {
-                options.put(user.getId(), new OrganizerOptionResponse(user.getId(), user.getFullName(), "TENANT_ORGANIZER"));
+                if (user.isActive()) options.put(user.getId(), new OrganizerOptionResponse(user.getId(), user.getFullName(), "TENANT_ORGANIZER"));
             }
             return options.values().stream().toList();
         }
         for (OrganizerApplication application : applications.findByStatusOrderByAppliedAtDesc(OrganizerStatus.APPROVED)) {
             User user = application.getUser();
-            options.put(user.getId(), new OrganizerOptionResponse(user.getId(), user.getFullName(), "APPROVED_ORGANIZER"));
+            if (user.isActive()) options.put(user.getId(), new OrganizerOptionResponse(user.getId(), user.getFullName(), "APPROVED_ORGANIZER"));
         }
         for (User user : users.findAll()) {
-            if (user.getRoles().stream().anyMatch(role -> role.getName() == RoleName.ADMIN || role.getName() == RoleName.SUPER_ADMIN)) {
+            if (user.isActive() && user.getRoles().stream().anyMatch(role -> role.getName() == RoleName.ADMIN || role.getName() == RoleName.SUPER_ADMIN)) {
                 options.putIfAbsent(user.getId(), new OrganizerOptionResponse(user.getId(), user.getFullName(), "ADMINISTRATOR"));
             }
         }
@@ -336,6 +336,7 @@ public class TournamentService {
     private User user(UUID id) { return users.findById(id).orElseThrow(() -> new NotFoundException("User not found")); }
 
     private boolean eligibleOrganizer(User user) {
+        if (user == null || !user.isActive()) return false;
         if (TenantContextHolder.get() != null) {
             return hasTenantRole(user.getId(), "ORGANIZER", "OWNER", "ADMIN");
         }
