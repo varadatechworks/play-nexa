@@ -15,6 +15,7 @@ class ProductionConfigurationGuardTest {
                 .withProperty("DB_USERNAME","playnexa")
                 .withProperty("DB_PASSWORD","a-strong-unique-db-password")
                 .withProperty("JWT_SECRET","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                .withProperty("JWT_ISSUER","https://auth.playnexa.example")
                 .withProperty("JWT_ACCESS_MINUTES","30")
                 .withProperty("CORS_ALLOWED_ORIGINS","https://arena.example.com")
                 .withProperty("PAYMENT_PROVIDER","razorpay")
@@ -52,6 +53,15 @@ class ProductionConfigurationGuardTest {
                 .withProperty("PLAYNEXA_HOSTING_MODE","customer-hosted")).validate());
         assertDoesNotThrow(()->new ProductionConfigurationGuard(secureProduction()
                 .withProperty("PLAYNEXA_HOSTING_MODE","playnexa-managed-single-tenant")).validate());
+    }
+
+    @Test void rejectsMissingOrPlaceholderJwtIssuerInProduction() {
+        assertThatThrownBy(()->new ProductionConfigurationGuard(secureProduction()
+                .withProperty("JWT_ISSUER","https://playnexa.invalid")).validate())
+                .hasMessageContaining("JWT_ISSUER must be a canonical public HTTPS URL");
+        assertThatThrownBy(()->new ProductionConfigurationGuard(secureProduction()
+                .withProperty("JWT_ISSUER","")).validate())
+                .hasMessageContaining("JWT_ISSUER is required");
     }
 
     @Test void rejectsThePlayNexaDevelopmentJwtSecretInProduction() {
