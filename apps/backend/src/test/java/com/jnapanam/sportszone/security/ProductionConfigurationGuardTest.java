@@ -15,7 +15,7 @@ class ProductionConfigurationGuardTest {
                 .withProperty("DB_USERNAME","playnexa")
                 .withProperty("DB_PASSWORD","a-strong-unique-db-password")
                 .withProperty("JWT_SECRET","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-                .withProperty("JWT_ISSUER","https://auth.playnexa.example")
+                .withProperty("JWT_ISSUER","https://auth.playnexa.com")
                 .withProperty("JWT_ACCESS_MINUTES","30")
                 .withProperty("CORS_ALLOWED_ORIGINS","https://arena.example.com")
                 .withProperty("PAYMENT_PROVIDER","razorpay")
