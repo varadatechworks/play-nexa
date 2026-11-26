@@ -3,6 +3,7 @@ package com.jnapanam.sportszone.tenancy;
 import com.jnapanam.sportszone.common.exception.ConflictException;
 import com.jnapanam.sportszone.common.exception.NotFoundException;
 import com.jnapanam.sportszone.identity.model.User;
+import com.jnapanam.sportszone.identity.model.RoleName;
 import com.jnapanam.sportszone.identity.repository.UserRepository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -94,6 +95,37 @@ public class TenantMembershipService {
             throw new NotFoundException("Tenant membership not found");
         }
         if ("OWNER".equals(existingRole)) throw new ConflictException("The tenant OWNER membership cannot be revoked");
+    }
+
+    @Transactional
+    public TenantMembershipSelfResponse current(UUID userId) {
+        TenantContext tenant = TenantContextHolder.get();
+        if (tenant == null) return null;
+        List<TenantMembershipSelfResponse> memberships = jdbc.query("""
+                select tenant_id, role, membership_status
+                from playnexa_tenant_memberships where tenant_id=? and user_id=?
+                """, (rs, row) -> new TenantMembershipSelfResponse(
+                        rs.getObject("tenant_id", UUID.class), rs.getString("role"),
+                        rs.getString("membership_status")), tenant.tenantId(), userId);
+        if (!memberships.isEmpty()) return memberships.get(0);
+
+        User user = users.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+        if (user.isActive() && user.getRoles().stream().anyMatch(role -> role.getName() == RoleName.CUSTOMER)) {
+            jdbc.update("""
+                    insert into playnexa_tenant_memberships
+                        (id, tenant_id, user_id, role, membership_status, invited_by)
+                    values (gen_random_uuid(), ?, ?, 'CUSTOMER', 'ACTIVE', NULL)
+                    on conflict (tenant_id, user_id) do nothing
+                    """, tenant.tenantId(), userId);
+            memberships = jdbc.query("""
+                    select tenant_id, role, membership_status
+                    from playnexa_tenant_memberships where tenant_id=? and user_id=?
+                    """, (rs, row) -> new TenantMembershipSelfResponse(
+                            rs.getObject("tenant_id", UUID.class), rs.getString("role"),
+                            rs.getString("membership_status")), tenant.tenantId(), userId);
+            if (!memberships.isEmpty()) return memberships.get(0);
+        }
+        return new TenantMembershipSelfResponse(tenant.tenantId(), null, "NONE");
     }
 
     @Transactional
