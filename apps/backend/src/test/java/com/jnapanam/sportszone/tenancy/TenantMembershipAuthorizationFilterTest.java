@@ -50,7 +50,7 @@ class TenantMembershipAuthorizationFilterTest {
         var authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
                 .stream().map(a -> a.getAuthority()).toList();
         assertThat(response.getStatus()).isEqualTo(200);
-        assertThat(authorities).contains("ROLE_OPERATOR").doesNotContain("ROLE_ADMIN", "ROLE_CUSTOMER");
+        assertThat(authorities).contains("ROLE_OPERATIONS").doesNotContain("ROLE_OPERATOR", "ROLE_ADMIN", "ROLE_CUSTOMER");
     }
 
     @Test
@@ -69,6 +69,21 @@ class TenantMembershipAuthorizationFilterTest {
         assertThat(SecurityContextHolder.getContext().getAuthentication().getAuthorities())
                 .extracting("authority").contains("ROLE_CUSTOMER");
         verify(jdbc).update(contains("insert into playnexa_tenant_memberships"), any(UUID.class), eq(tenantId), eq(userId));
+    }
+
+    @Test
+    void organizerMembershipMapsToTheApplicationOrganizerRole() throws Exception {
+        when(jdbc.queryForObject(anyString(), eq(String.class), eq(tenantId), eq(userId))).thenReturn("ORGANIZER");
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                userId.toString(), null, List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"))));
+        var response = new MockHttpServletResponse();
+
+        filter.doFilter(new MockHttpServletRequest("GET", "/api/v1/tournaments"),
+                response, new MockFilterChain());
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        assertThat(SecurityContextHolder.getContext().getAuthentication().getAuthorities())
+                .extracting("authority").contains("ROLE_ORGANIZER");
     }
 
     @Test
