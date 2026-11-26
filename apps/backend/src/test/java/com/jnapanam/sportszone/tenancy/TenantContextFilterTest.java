@@ -1,6 +1,7 @@
 package com.jnapanam.sportszone.tenancy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 import java.util.Optional;
