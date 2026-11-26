@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -20,6 +21,9 @@ import com.jnapanam.sportszone.notification.service.NotificationService;
 import com.jnapanam.sportszone.tenancy.TenantContext;
 import com.jnapanam.sportszone.tenancy.TenantContextHolder;
 import com.jnapanam.sportszone.tournament.dto.TournamentRequest;
+import com.jnapanam.sportszone.tournament.dto.OrganizerReviewRequest;
+import com.jnapanam.sportszone.tournament.model.OrganizerApplication;
+import com.jnapanam.sportszone.tournament.model.OrganizerStatus;
 import com.jnapanam.sportszone.tournament.model.TeamStatus;
 import com.jnapanam.sportszone.tournament.model.Tournament;
 import com.jnapanam.sportszone.tournament.model.TournamentFormat;
@@ -101,6 +105,25 @@ class TournamentServiceTenantMembershipTest {
         verify(applications, never()).existsByUserIdAndStatus(organizerId,
                 com.jnapanam.sportszone.tournament.model.OrganizerStatus.APPROVED);
         verifyNoInteractions(tournaments, sports);
+    }
+
+    @Test
+    void approvingOrganizerApplicationCreatesTenantMembershipInsteadOfGlobalRole() {
+        TenantContextHolder.set(new TenantContext(tenantId, "arena-one", "Arena One", "CUSTOMER_HOSTED"));
+        UUID applicationId = UUID.randomUUID();
+        OrganizerApplication application = mock(OrganizerApplication.class);
+        when(applications.findById(applicationId)).thenReturn(Optional.of(application));
+        when(application.getStatus()).thenReturn(OrganizerStatus.PENDING);
+        when(application.getUser()).thenReturn(organizer);
+
+        service.review(applicationId, new OrganizerReviewRequest(OrganizerStatus.APPROVED, "Verified"));
+
+        verify(jdbc).update(contains("insert into playnexa_tenant_memberships"),
+                any(UUID.class), eq(tenantId), eq(organizerId));
+        verify(roles, never()).findByName(RoleName.ORGANIZER);
+        verify(organizer, never()).getRoles();
+        verify(notifications).lifecycle(organizerId, "ORGANIZER_APPROVED", "Organizer access approved",
+                "Your organizer application has been approved. You can now create and manage tournaments.");
     }
 
     private TournamentRequest request() {
