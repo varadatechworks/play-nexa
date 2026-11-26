@@ -205,6 +205,8 @@ export async function register(payload: { fullName: string; email: string; mobil
   saveTokens(tokens); return api<User>("/api/v1/profile/me");
 }
 
+export async function loadCurrentUserProfile() { return currentUserProfile(); }
+
 export async function restoreSession() { return (await refreshAccess()) ? currentUserProfile() : null; }
 export async function logout() {
   const refreshToken = typeof window === "undefined" ? null : localStorage.getItem(REFRESH_KEY);
