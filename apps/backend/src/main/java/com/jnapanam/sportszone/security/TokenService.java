@@ -12,18 +12,21 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 public class TokenService {
     private final JwtEncoder encoder;
     private final SecurityProperties properties;
+    @Value("${app.security.jwt-issuer:playnexa}")
+    private String issuer = "playnexa";
     public TokenService(JwtEncoder encoder, SecurityProperties properties) { this.encoder = encoder; this.properties = properties; }
 
     public AccessToken createAccessToken(User user) {
         Instant now = Instant.now();
         Instant expiry = now.plus(properties.accessTokenMinutes(), ChronoUnit.MINUTES);
         var roles = user.getRoles().stream().map(r -> r.getName().name()).toList();
-        JwtClaimsSet claims = JwtClaimsSet.builder().issuer("jnapanam-sports-zone").issuedAt(now).expiresAt(expiry)
+        JwtClaimsSet claims = JwtClaimsSet.builder().issuer(issuer).issuedAt(now).expiresAt(expiry)
                 .subject(user.getId().toString()).claim("email", user.getEmail()).claim("name", user.getFullName()).claim("roles", roles).build();
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
         return new AccessToken(encoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue(), expiry);
