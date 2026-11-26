@@ -76,7 +76,7 @@ export default function TenantMembershipsPage() {
       });
       setEmail("");
       setNotice(status === "INVITED"
-        ? "Invitation record created. The user must sign in and accept it; this page does not send an email."
+        ? "Invitation record created. Share /tenant-invitation with the user so they can sign in and accept it; this page does not send an email."
         : "Member added to this arena.");
       await load();
     } catch (err) {
