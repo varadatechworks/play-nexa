@@ -66,6 +66,7 @@ class TournamentServiceTenantMembershipTest {
         when(users.findById(organizerId)).thenReturn(Optional.of(organizer));
         when(organizer.getId()).thenReturn(organizerId);
         when(organizer.getFullName()).thenReturn("Organizer");
+        when(organizer.isActive()).thenReturn(true);
         when(sport.getCode()).thenReturn("BADMINTON");
         when(sports.findByCodeIgnoreCase("BADMINTON")).thenReturn(Optional.of(sport));
         when(tournaments.existsByCodeIgnoreCase("CUP-2026")).thenReturn(false);
@@ -89,6 +90,16 @@ class TournamentServiceTenantMembershipTest {
         assertThat(created.organizerName()).isEqualTo("Organizer");
         verify(applications, never()).existsByUserIdAndStatus(organizerId,
                 com.jnapanam.sportszone.tournament.model.OrganizerStatus.APPROVED);
+    }
+
+    @Test
+    void inactiveTenantOrganizerCannotCreateTournament() {
+        TenantContextHolder.set(new TenantContext(tenantId, "arena-one", "Arena One", "CUSTOMER_HOSTED"));
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), any(Object[].class))).thenReturn(1);
+        when(organizer.isActive()).thenReturn(false);
+
+        assertThrows(ConflictException.class, () -> service.createByOrganizer(organizerId, request()));
+        verify(tournaments, never()).save(any(Tournament.class));
     }
 
     @Test
