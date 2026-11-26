@@ -72,7 +72,7 @@ class TenantControlPlaneSchemaIntegrationTest {
         String roleConstraint = jdbc.queryForObject(
                 "select pg_get_constraintdef(oid) from pg_constraint where conname='playnexa_tenant_memberships_role_check'",
                 String.class);
-        assertThat(roleConstraint).contains("CUSTOMER");
+        assertThat(roleConstraint).contains("CUSTOMER", "ORGANIZER");
         assertThat(jdbc.queryForObject("select hosting_mode from playnexa_tenants where id=?", String.class, customerHosted))
                 .isEqualTo("CUSTOMER_HOSTED");
         assertThat(jdbc.queryForObject("select hosting_mode from playnexa_tenants where id=?", String.class, managedSingleTenant))

@@ -22,7 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 public class TenantMembershipAuthorizationFilter extends OncePerRequestFilter {
     private static final Set<String> TENANT_AUTHORITIES = Set.of(
-            "ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_COACH", "ROLE_SHOP_KEEPER", "ROLE_CUSTOMER");
+            "ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_OPERATIONS", "ROLE_COACH", "ROLE_ORGANIZER", "ROLE_SHOP_KEEPER", "ROLE_CUSTOMER");
     private final JdbcTemplate jdbc;
 
     public TenantMembershipAuthorizationFilter(JdbcTemplate jdbc) { this.jdbc = jdbc; }
@@ -31,14 +31,16 @@ public class TenantMembershipAuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain chain) throws ServletException, IOException {
         String path = request.getRequestURI();
+        boolean safeRead = "GET".equalsIgnoreCase(request.getMethod())
+                || "HEAD".equalsIgnoreCase(request.getMethod());
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())
                 || path.startsWith("/api/v1/auth/") || path.startsWith("/api/v1/public/")
                 || path.startsWith("/actuator/")
-                || path.equals("/api/v1/commerce/settings")
-                || path.equals("/api/v1/commerce/categories")
-                || path.startsWith("/api/v1/commerce/products")
-                || path.equals("/api/v1/subscriptions/offerings")
-                || path.equals("/api/v1/subscriptions/config")) {
+                || (safeRead && (path.equals("/api/v1/commerce/settings")
+                        || path.equals("/api/v1/commerce/categories")
+                        || path.startsWith("/api/v1/commerce/products")
+                        || path.equals("/api/v1/subscriptions/offerings")
+                        || path.equals("/api/v1/subscriptions/config")))) {
             chain.doFilter(request, response);
             return;
         }
@@ -105,7 +107,8 @@ public class TenantMembershipAuthorizationFilter extends OncePerRequestFilter {
         if (role == null) return null;
         return switch (role) {
             case "OWNER", "ADMIN" -> "ROLE_ADMIN";
-            case "OPERATOR" -> "ROLE_OPERATOR";
+            case "OPERATOR" -> "ROLE_OPERATIONS";
+            case "ORGANIZER" -> "ROLE_ORGANIZER";
             case "COACH" -> "ROLE_COACH";
             case "SHOPKEEPER" -> "ROLE_SHOP_KEEPER";
             case "CUSTOMER" -> "ROLE_CUSTOMER";

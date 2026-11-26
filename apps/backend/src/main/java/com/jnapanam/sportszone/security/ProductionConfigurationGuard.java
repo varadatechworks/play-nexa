@@ -41,7 +41,8 @@ public class ProductionConfigurationGuard {
                 value("EXPOSE_DEVELOPMENT_RESET_TOKEN","false"))))
             missing.add("EXPOSE_DEVELOPMENT_RESET_TOKEN must be false");
         String jwt=value("JWT_SECRET","");
-        if (jwt.length()<32 || jwt.equals("Sm5hcGFuYW0gU3BvcnRzIFpvbmUgRGV2ZWxvcG1lbnQgSldUIFNlY3JldCAyMDI2IQ=="))
+        if (jwt.length()<32 || jwt.equals("Sm5hcGFuYW0gU3BvcnRzIFpvbmUgRGV2ZWxvcG1lbnQgSldUIFNlY3JldCAyMDI2IQ==")
+                || jwt.equals("UGxheU5leGEgRGV2ZWxvcG1lbnQgSldUIFNlY3JldCAyMDI2IQ=="))
             missing.add("JWT_SECRET must be a strong unique production signing key");
         String cors=value("CORS_ALLOWED_ORIGINS","");
         if (cors.isBlank() || Arrays.stream(cors.split(","))

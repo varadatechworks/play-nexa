@@ -8,6 +8,8 @@ import com.jnapanam.sportszone.common.exception.NotFoundException;
 import com.jnapanam.sportszone.identity.model.RoleName;
 import com.jnapanam.sportszone.identity.model.User;
 import com.jnapanam.sportszone.identity.repository.UserRepository;
+import com.jnapanam.sportszone.tenancy.TenantContext;
+import com.jnapanam.sportszone.tenancy.TenantContextHolder;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -124,6 +126,27 @@ public class OperatorAssignmentService {
         if (count == null || count == 0) throw new NotFoundException("Booking not found");
     }
 
+    /** Prevents operators from creating walk-ins against slots outside their assigned facilities. */
+    @Transactional(readOnly = true)
+    public void assertSlotAllowed(UUID actorId, UUID slotId) {
+        if (isAdministrator(actorId)) return;
+        requireOperator(actorId);
+        Integer count = jdbc.queryForObject("select count(*) from booking_slots s "
+                        + "join operator_facility_assignments a on a.facility_id=s.facility_id "
+                        + "where s.id=? and a.operator_id=?", Integer.class, slotId, actorId);
+        if (count == null || count == 0) throw new NotFoundException("Slot not found");
+    }
+
+    /** Emergency closure is a facility-wide destructive action and must be scoped to assignments. */
+    @Transactional(readOnly = true)
+    public void assertFacilityAllowed(UUID actorId, UUID facilityId) {
+        if (isAdministrator(actorId)) return;
+        requireOperator(actorId);
+        Integer count = jdbc.queryForObject("select count(*) from operator_facility_assignments "
+                        + "where facility_id=? and operator_id=?", Integer.class, facilityId, actorId);
+        if (count == null || count == 0) throw new NotFoundException("Facility not found");
+    }
+
     private Set<UUID> assignedFacilityIds(UUID operatorId) {
         return new LinkedHashSet<>(jdbc.query("select facility_id from operator_facility_assignments where operator_id=?",
                 (rs, row) -> rs.getObject(1, UUID.class), operatorId));
@@ -131,13 +154,33 @@ public class OperatorAssignmentService {
 
     private User requireOperator(UUID id) {
         User user = users.findById(id).orElseThrow(() -> new NotFoundException("Operator not found"));
-        boolean operator = user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.OPERATIONS);
-        if (!operator) throw new ConflictException("User does not have the Operations role");
+        boolean operator = TenantContextHolder.get() != null
+                ? hasTenantRole(id, "OPERATOR")
+                : user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.OPERATIONS);
+        if (!operator) throw new ConflictException("User does not have the Operations role in this arena");
         return user;
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isAdministratorActor(UUID id) {
+        return isAdministrator(id);
     }
 
     private boolean isAdministrator(UUID id) {
         User user = users.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
-        return user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.ADMIN || r.getName() == RoleName.SUPER_ADMIN);
+        if (user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.SUPER_ADMIN)) return true;
+        if (TenantContextHolder.get() != null) {
+            return hasTenantRole(id, "OWNER") || hasTenantRole(id, "ADMIN");
+        }
+        return user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.ADMIN);
+    }
+
+    private boolean hasTenantRole(UUID userId, String role) {
+        TenantContext tenant = TenantContextHolder.get();
+        if (tenant == null) return false;
+        Integer count = jdbc.queryForObject("select count(*) from playnexa_tenant_memberships "
+                        + "where tenant_id=? and user_id=? and membership_status='ACTIVE' and role=?",
+                Integer.class, tenant.tenantId(), userId, role);
+        return count != null && count > 0;
     }
 }

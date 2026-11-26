@@ -7,6 +7,7 @@
 - Request tenant context is resolved from the verified host for SaaS, or from the deployment's configured tenant ID for a dedicated tenant. No client-supplied tenant header is trusted.
 - Tenant membership authorization runs after JWT authentication. It replaces global tenant-admin/operator/coach/shopkeeper/customer roles with the role attached to the resolved tenant.
 - Customer users are enrolled as CUSTOMER in a tenant on first authenticated visit; privileged roles require an explicit ACTIVE tenant membership. SUPER_ADMIN remains a platform-level role.
+- Operator assignment, front-desk and equipment-inventory authorization consults ACTIVE tenant membership when tenant context is present. A global ADMIN role cannot bypass another tenant's operator facility scope; platform SUPER_ADMIN retains the platform-wide bypass.
 - Context is cleared in a finally block at request completion. Health checks do not require tenant context.
 - The context filter is opt-in through `PLAYNEXA_TENANT_CONTEXT_ENABLED=false` by default. Existing dedicated deployments remain unchanged until their tenant registry and memberships are provisioned.
 - `SharedHostingSafetyGateFilter` continues to return 503 for SaaS/unknown modes. `ProductionConfigurationGuard` only accepts the three dedicated hosting configurations; SaaS remains rejected.

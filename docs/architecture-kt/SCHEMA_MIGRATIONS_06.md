@@ -1,4 +1,4 @@
-# PlayNexa schema migrations V60–V65
+# PlayNexa schema migrations V60–V66
 
 > Source-derived migration summary as of 2026-11-27. This is not evidence that any production database has applied these versions.
 
@@ -10,6 +10,7 @@
 | V63 | `V63__payment_refund_deductions.sql` | Adds non-negative `payment_refunds.deduction_paise` and an order/requested-time index. |
 | V64 | `V64__payment_refund_deduction_description.sql` | Adds optional `payment_refunds.deduction_description` for auditable retained charges. |
 | V65 | `V65__tenant_hosting_modes_and_customer_membership.sql` | Allows customer-hosted, PlayNexa-managed single-tenant and SaaS registry modes; adds CUSTOMER to tenant membership roles. It does not enable shared SaaS. |
+| V66 | `V66__tenant_organizer_membership_role.sql` | Adds ORGANIZER to tenant-scoped membership roles so tournament permissions are not inherited globally across tenants. |
 
 ## Version collision handling
 

@@ -1,19 +1,19 @@
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: jnapanam-postgres
+    container_name: playnexa-postgres
     environment:
-      POSTGRES_DB: jnapanam_sports_zone
-      POSTGRES_USER: jnapanam
-      POSTGRES_PASSWORD: jnapanam_dev
+      POSTGRES_DB: playnexa
+      POSTGRES_USER: playnexa
+      POSTGRES_PASSWORD: playnexa_dev
     ports:
       - "5432:5432"
     volumes:
-      - jnapanam_postgres_data:/var/lib/postgresql/data
+      - playnexa_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U jnapanam -d jnapanam_sports_zone"]
+      test: ["CMD-SHELL", "pg_isready -U playnexa -d playnexa"]
       interval: 5s
       timeout: 5s
       retries: 10
 volumes:
-  jnapanam_postgres_data:
+  playnexa_postgres_data:
