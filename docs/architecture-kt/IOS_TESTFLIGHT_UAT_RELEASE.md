@@ -10,7 +10,7 @@
 ## Accounts and prerequisites
 
 1. The customer/owner must enroll in the Apple Developer Program (organization enrollment is preferable if the app belongs to a registered business). Apple charges an annual membership fee; confirm the current fee and legal-entity requirements directly with Apple before purchase.
-2. Create the app record in App Store Connect with bundle ID exactly `com.varadatechworks.playnexa.demo`; choose the final public seller name and primary category.
+2. For UAT, create the app record with bundle ID `com.varadatechworks.playnexa.demo`; for a customer-branded production release, set a unique `ARENA_IOS_BUNDLE_ID` and create the matching App Store Connect app record. Choose the final public seller name and primary category.
 3. Create/link the Expo EAS project from `apps/mobile` using the owner's Expo account: `npx eas-cli@latest init`. This writes the EAS project ID into Expo config; commit that generated project ID (it is not a secret).
 4. Configure iOS Distribution certificate and provisioning profile in EAS credentials for the same Apple Developer team. Keep Apple credentials, certificates and API keys in EAS/secret storage; never commit them.
 5. Configure App Store Connect API access in EAS Submit credentials for automated submission, or upload the generated IPA using Transporter. The Apple Account holder must accept current agreements and complete tax/banking/compliance setup before public release.
