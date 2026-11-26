@@ -57,6 +57,7 @@ app:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
   security:
     jwt-secret: ${JWT_SECRET:UGxheU5leGEgRGV2ZWxvcG1lbnQgSldUIFNlY3JldCAyMDI2IQ==}
+    jwt-issuer: ${JWT_ISSUER:playnexa}
     access-token-minutes: ${JWT_ACCESS_MINUTES:43200}
     refresh-token-days: ${JWT_REFRESH_DAYS:30}
     expose-development-reset-token: ${EXPOSE_DEVELOPMENT_RESET_TOKEN:false}
