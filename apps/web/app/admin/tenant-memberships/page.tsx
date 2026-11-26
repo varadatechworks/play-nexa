@@ -159,7 +159,7 @@ export default function TenantMembershipsPage() {
           </div>
           <div className={styles.modalActions}>
             <button className={styles.primary} disabled={busy || !email.trim()}>
-              {busy ? "Saving…" : status === "INVITED" ? "Create invitation" : "Add member"}
+              {busy ? "Saving…" : status === "INVITED" ? "Save invitation" : "Add member"}
             </button>
           </div>
         </form>
