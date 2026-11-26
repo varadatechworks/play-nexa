@@ -126,6 +126,19 @@ class TenantMembershipAuthorizationFilterTest {
     }
 
     @Test
+    void invitedCustomerCanReachOnlyTheInvitationAcceptanceRoute() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                userId.toString(), null, List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"))));
+        var response = new MockHttpServletResponse();
+
+        filter.doFilter(new MockHttpServletRequest("POST", "/api/v1/tenant-memberships/me/accept"),
+                response, new MockFilterChain());
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        verifyNoInteractions(jdbc);
+    }
+
+    @Test
     void tenantAdminCannotUseGlobalUserManagementEndpoints() throws Exception {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 userId.toString(), null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
