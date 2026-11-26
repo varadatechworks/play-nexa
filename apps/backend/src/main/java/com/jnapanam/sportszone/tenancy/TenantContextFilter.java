@@ -16,6 +16,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)
 public class TenantContextFilter extends OncePerRequestFilter {
+    // Intentionally hard-disabled until every tenant-owned table and async boundary is isolated.
+    // A deployment environment variable must never be sufficient to open shared SaaS.
+    private static final boolean SHARED_SAAS_DATA_PLANE_CERTIFIED = false;
     private final Environment environment;
     private final TenantDomainResolver resolver;
 
@@ -36,7 +39,8 @@ public class TenantContextFilter extends OncePerRequestFilter {
         String mode = environment.getProperty("PLAYNEXA_HOSTING_MODE", "dedicated").trim().toLowerCase(Locale.ROOT);
         Optional<TenantContext> resolved;
         if (mode.equals("saas") || mode.equals("multi-tenant-saas")) {
-            if (!Boolean.parseBoolean(environment.getProperty("PLAYNEXA_SHARED_SAAS_READY", "false"))) {
+            if (!SHARED_SAAS_DATA_PLANE_CERTIFIED
+                    || !Boolean.parseBoolean(environment.getProperty("PLAYNEXA_SHARED_SAAS_READY", "false"))) {
                 response.setHeader("Cache-Control", "no-store");
                 response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
                         "Shared SaaS is disabled until tenant data isolation is certified");
