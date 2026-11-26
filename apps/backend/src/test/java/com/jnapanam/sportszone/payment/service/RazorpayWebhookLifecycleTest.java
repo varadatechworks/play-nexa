@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jnapanam.sportszone.booking.repository.BookingRepository;
 import com.jnapanam.sportszone.booking.service.BookingService;
 import com.jnapanam.sportszone.common.exception.BadRequestException;
+import com.jnapanam.sportszone.common.exception.ConflictException;
 import com.jnapanam.sportszone.identity.model.User;
 import com.jnapanam.sportszone.identity.repository.UserRepository;
 import com.jnapanam.sportszone.loyalty.service.LoyaltyService;
@@ -109,10 +110,10 @@ class RazorpayWebhookLifecycleTest {
 
     @Test void razorpayRefundCreationRemainsRequestedUntilWebhook() {
         PaymentOrder order=paidOrder();
-        when(orders.findById(order.getId())).thenReturn(Optional.of(order));
+        when(orders.findLockedById(order.getId())).thenReturn(Optional.of(order));
         when(refunds.findByPaymentOrderId(order.getId())).thenReturn(List.of());
         when(refunds.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        when(gateway.refund(eq("pay_001"),eq(10000L),anyString()))
+        when(gateway.refund(eq("pay_001"),eq(10000L),anyString(),anyString()))
             .thenReturn(new PaymentGateway.Refund("rfnd_001"));
         var result=service.refund(order.getId(),new RefundRequest(null,"Customer request"));
         assertEquals(RefundStatus.REQUESTED,result.status());
@@ -127,13 +128,39 @@ class RazorpayWebhookLifecycleTest {
         refund.submitted("rfnd_001");
         when(refunds.findByProviderRefundId("rfnd_001")).thenReturn(Optional.of(refund));
         when(refunds.findByPaymentOrderId(order.getId())).thenReturn(List.of(refund));
-        String json="{\"event\":\"refund.processed\",\"payload\":{\"refund\":{\"entity\":{\"id\":\"rfnd_001\",\"payment_id\":\"pay_001\",\"amount\":10000}}}}";
+        String json = """
+                {"event":"refund.processed","payload":{"refund":{"entity":{"id":"rfnd_001","payment_id":"pay_001","amount":10000}}}}
+                """;
         event("evt-refund-processed",json);
         assertEquals(RefundStatus.PROCESSED,refund.getStatus());
         assertEquals(PaymentStatus.REFUNDED,order.getStatus());
         verify(notifications).refund(eq(order.getUser().getId()),eq(order.getReceiptNumber()),eq(10000L));
         event("evt-refund-second-event",json);
         verify(notifications,times(1)).refund(any(),anyString(),anyLong());
+    }
+
+    @Test void processedRefundAndRetainedDeductionSettleTheRemainingCapturedBalance() throws Exception {
+        PaymentOrder order=paidOrder();
+        order.refundStatus(5000L);
+        PaymentRefund earlier=new PaymentRefund(order,5000L,"Earlier approved partial refund");
+        earlier.submitted("rfnd_previous");
+        earlier.processed("rfnd_previous");
+        PaymentRefund next=new PaymentRefund(order,8000L,"Cancellation with retained venue fee",2000L,
+                "Venue administration charge");
+        next.submitted("rfnd_deduction");
+        when(orders.findLockedById(order.getId())).thenReturn(Optional.of(order));
+        when(refunds.findByProviderRefundId("rfnd_deduction")).thenReturn(Optional.of(next));
+        when(refunds.findByPaymentOrderId(order.getId())).thenReturn(List.of(earlier,next));
+        String json = """
+                {"event":"refund.processed","payload":{"refund":{"entity":{"id":"rfnd_deduction","payment_id":"pay_001","amount":8000}}}}
+                """;
+        event("evt-refund-with-deduction",json);
+        assertEquals(RefundStatus.PROCESSED,next.getStatus());
+        assertEquals(PaymentStatus.REFUNDED,order.getStatus(),
+                "the prior 5,000 refund plus 8,000 refund and 2,000 retained charge settle 15,000");
+        assertThrows(ConflictException.class,
+                ()->service.refund(order.getId(),new RefundRequest(null,"Do not refund retained fee")));
+        verify(notifications).refund(eq(order.getUser().getId()),eq(order.getReceiptNumber()),eq(8000L));
     }
 
     @Test void failedRefundDoesNotMakePaymentRefunded() throws Exception {
@@ -156,6 +183,30 @@ class RazorpayWebhookLifecycleTest {
         assertEquals(RefundStatus.REQUESTED,refund.getStatus());
         verify(events,never()).save(any());
     }
+    @Test void secondDistinctCapturedPaymentForPaidOrderRequiresReconciliation() throws Exception {
+        PaymentOrder order=paidOrder();
+        when(orders.findByProviderOrderId("order_001")).thenReturn(Optional.of(order));
+        event("evt-second-capture",
+          "{\"event\":\"payment.captured\",\"payload\":{\"payment\":{\"entity\":{\"id\":\"pay_002\",\"order_id\":\"order_001\",\"amount\":10000,\"currency\":\"INR\",\"status\":\"captured\"}}}}");
+        assertEquals("pay_001",order.getProviderPaymentId(),"the original payment remains linked to the order");
+        ArgumentCaptor<PaymentWebhookEvent> captured=ArgumentCaptor.forClass(PaymentWebhookEvent.class);
+        verify(events).save(captured.capture());
+        assertEquals("REVIEW_REQUIRED",captured.getValue().getStatus());
+        assertEquals("pay_002",captured.getValue().getProviderPaymentId());
+        verifyNoInteractions(notifications);
+    }
+
+    @Test void duplicateCapturedEventForSamePaymentIsAuditedWithoutSecondFulfilment() throws Exception {
+        PaymentOrder order=paidOrder();
+        when(orders.findByProviderOrderId("order_001")).thenReturn(Optional.of(order));
+        event("evt-same-capture-new-event-id",
+          "{\"event\":\"payment.captured\",\"payload\":{\"payment\":{\"entity\":{\"id\":\"pay_001\",\"order_id\":\"order_001\",\"amount\":10000,\"currency\":\"INR\",\"status\":\"captured\"}}}}");
+        ArgumentCaptor<PaymentWebhookEvent> captured=ArgumentCaptor.forClass(PaymentWebhookEvent.class);
+        verify(events).save(captured.capture());
+        assertEquals("ALREADY_APPLIED",captured.getValue().getStatus());
+        verifyNoInteractions(notifications);
+    }
+
     @Test void lateCapturedPaymentAfterBookingExpiryMustBeRecordedForReconciliation() throws Exception {
         User user=mock(User.class);
         when(user.getId()).thenReturn(UUID.randomUUID());
