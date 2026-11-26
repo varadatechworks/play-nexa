@@ -95,5 +95,6 @@ After the initial OWNER membership is provisioned, the tenant OWNER/ADMIN can ma
 - `GET /api/v1/admin/tenant-memberships` — list members in the current tenant only
 - `PUT /api/v1/admin/tenant-memberships/{userId}` — assign `ADMIN`, `OPERATOR`, `COACH`, `ORGANIZER`, `SHOPKEEPER` or `CUSTOMER` with status `INVITED`, `ACTIVE`, `SUSPENDED` or `REVOKED`
 - `DELETE /api/v1/admin/tenant-memberships/{userId}` — revoke access without deleting history
+- `POST /api/v1/tenant-memberships/me/accept` — let the authenticated invitee accept their current tenant invitation
 
-The user account must already exist and be active. OWNER cannot be assigned, overwritten or revoked through this endpoint; ownership transfer requires a separately reviewed procedure. Tenant administrators cannot use global `/api/v1/admin/users` endpoints while tenant context is active; those remain platform SUPER_ADMIN-only.
+The user account must already exist and be active. OWNER cannot be assigned, overwritten or revoked through this endpoint; ownership transfer requires a separately reviewed procedure. An INVITED user can accept only their own invitation in the current tenant; ACTIVE acceptance is idempotent, while suspended/revoked invitations cannot be accepted. Tenant administrators cannot use global `/api/v1/admin/users` endpoints while tenant context is active; those remain platform SUPER_ADMIN-only.
