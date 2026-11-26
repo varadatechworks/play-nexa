@@ -15,6 +15,7 @@ The documents below extend the earlier source-derived schema index with **full b
 - [Safe Flyway migration and rollback playbook](MIGRATION_RUNBOOK.md)
 - [Standard HTTP codes, user-facing messages, security and error logs](STATUS_LOGS_SECURITY.md)
 - [All web/mobile source route inventory and UI/UX acceptance checklist](SCREEN_ROUTE_INVENTORY.md)
+- [iPhone iOS build, TestFlight UAT and App Store release runbook](IOS_TESTFLIGHT_UAT_RELEASE.md)
 - [Operations maintenance, UAT and customer KT/demo guide](OPERATIONS_KT_UAT.md)
 
 **Verification:** `npm test`, `npm run audit:routes`, `npm run branding:audit`, and `bash scripts/migrate-playnexa.sh plan`. Production requires explicit `APP_ENV=production` or an active Spring `prod` profile, real merchant/secret configuration and independent end-to-end UAT. Do not enable shared SaaS until cross-tenant isolation is implemented and tested.

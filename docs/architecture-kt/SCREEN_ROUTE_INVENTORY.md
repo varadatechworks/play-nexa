@@ -1,6 +1,6 @@
 # Page-by-page UI/UX and security review inventory
 
-> Generated from the PlayNexa source tree on 10 November 2026. **39 Next.js page files and 20 Expo screen files** found. This is a route **inventory**, not a claim that each page was rendered, clicked or penetration-tested. Dynamic UAT must still take place using a deployed PlayNexa test database and approved test users.
+> Generated from the PlayNexa source tree on 10 November 2026. **40 Next.js page files and 20 Expo screen files** found. This is a route **inventory**, not a claim that each page was rendered, clicked or penetration-tested. Dynamic UAT must still take place using a deployed PlayNexa test database and approved test users.
 
 ## Web pages (all currently discovered)
 
@@ -17,6 +17,7 @@
 | `/admin/features` | Admin | Source discovered; interactive QA pending |
 | `/admin/notification-providers` | Admin | Source discovered; interactive QA pending |
 | `/admin/operator-assignments` | Admin | Source discovered; interactive QA pending |
+| `/admin/promotions` | Admin | Source discovered; interactive QA pending |
 | `/admin` | Admin | Source discovered; interactive QA pending |
 | `/admin/player-growth` | Admin | Source discovered; interactive QA pending |
 | `/admin/pricing` | Admin | Source discovered; interactive QA pending |

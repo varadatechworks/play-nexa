@@ -11,6 +11,7 @@ import com.jnapanam.sportszone.membership.repository.CustomerMembershipRepositor
 import com.jnapanam.sportszone.payment.config.PaymentProperties;
 import com.jnapanam.sportszone.payment.dto.*;
 import com.jnapanam.sportszone.payment.gateway.PaymentGateway;
+import com.jnapanam.sportszone.payment.gateway.RefundGatewayUncertainException;
 import com.jnapanam.sportszone.payment.model.*;
 import com.jnapanam.sportszone.payment.repository.*;
 import com.jnapanam.sportszone.training.model.*;
@@ -79,8 +80,18 @@ public class PaymentService {
         if (key == null || key.isBlank() || key.length() > 100)
             throw new BadRequestException("A valid Idempotency-Key header is required");
         Optional<PaymentOrder> existing = orders.findByUserIdAndIdempotencyKey(userId, key);
-        if (existing.isPresent())
-            return response(existing.get());
+        if (existing.isPresent()) {
+            PaymentOrder prior = existing.get();
+            String requestedCoupon = normalizeCoupon(request.couponCode());
+            String priorCoupon = normalizeCoupon(prior.getPromotionCode());
+            long requestedPoints = request.loyaltyPoints() == null ? 0 : request.loyaltyPoints();
+            if (prior.getPurpose() != request.purpose()
+                    || !prior.getReferenceId().equals(request.referenceId())
+                    || !Objects.equals(priorCoupon, requestedCoupon)
+                    || prior.getLoyaltyPointsUsed() != requestedPoints)
+                throw new ConflictException("Idempotency-Key was already used for a different payment request. Start a new payment attempt.");
+            return response(prior);
+        }
         if (orders.existsByPurposeAndReferenceIdAndStatus(request.purpose(), request.referenceId(), PaymentStatus.PAID))
             throw new ConflictException("This item is already paid");
         User user = users.findById(userId).orElseThrow(() -> new UnauthorizedException("User not found"));
@@ -196,26 +207,73 @@ public class PaymentService {
         return response(order);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
+    public List<RefundResponse> refunds(UUID paymentId) {
+        if (!orders.existsById(paymentId)) throw new NotFoundException("Payment not found");
+        return refunds.findByPaymentOrderId(paymentId).stream()
+                .sorted(Comparator.comparing(PaymentRefund::getRequestedAt).reversed())
+                .map(this::refundResponse).toList();
+    }
+
+    // A refund whose gateway response was lost must remain REQUESTED rather than being
+    // rolled back: retrying with a new ID could refund the customer a second time.
+    @Transactional(noRollbackFor = RefundGatewayUncertainException.class)
     public RefundResponse refund(UUID id, RefundRequest request) {
-        PaymentOrder order = orders.findById(id).orElseThrow(() -> new NotFoundException("Payment not found"));
+        PaymentOrder order = orders.findLockedById(id)
+                .orElseThrow(() -> new NotFoundException("Payment not found"));
         if (order.getStatus() != PaymentStatus.PAID && order.getStatus() != PaymentStatus.PARTIALLY_REFUNDED)
-            throw new ConflictException("Only paid payments can be refunded");
+            throw new ConflictException("Only captured payments can be refunded");
+        if (!"RAZORPAY".equals(order.getProvider()) && !"MOCK".equals(order.getProvider()))
+            throw new ConflictException("This payment was collected onsite. A Razorpay refund cannot be issued; arrange and record a manual refund.");
+        if (order.getProviderPaymentId() == null || order.getProviderPaymentId().isBlank())
+            throw new ConflictException("No captured gateway payment ID is recorded. Reconcile the payment before refunding.");
+
+        if (order.getPurpose() == PaymentPurpose.BOOKING) {
+            Booking booking = bookings.findById(order.getReferenceId())
+                    .orElseThrow(() -> new NotFoundException("Booking not found"));
+            // A verified late gateway capture can arrive after the booking's payment
+            // window expired and the slot was released. Such a booking cannot be
+            // cancelled again, but the captured money must remain refundable.
+            if (booking.getStatus() != BookingStatus.CANCELLED
+                    && booking.getStatus() != BookingStatus.NO_SHOW
+                    && booking.getStatus() != BookingStatus.PAYMENT_EXPIRED)
+                throw new ConflictException("Cancel the booking, allow payment expiry, or mark the past booking NO_SHOW before issuing a refund.");
+            if (booking.getStatus() == BookingStatus.NO_SHOW && request.reason().trim().length() < 10)
+                throw new BadRequestException("Explain the genuine no-show refund exception in at least 10 characters.");
+        }
+
         List<PaymentRefund> existing = refunds.findByPaymentOrderId(id);
         if (existing.stream().anyMatch(r -> r.getStatus() == RefundStatus.REQUESTED))
-            throw new ConflictException("A refund is still processing. Check its status before another request.");
-        long already = existing.stream().filter(r -> r.getStatus() == RefundStatus.PROCESSED)
-                .mapToLong(PaymentRefund::getAmountPaise).sum();
-        long amount = request.amountPaise() == null ? order.getAmountPaise() - already : request.amountPaise();
-        if (amount <= 0 || already + amount > order.getAmountPaise())
-            throw new BadRequestException("Refund exceeds refundable amount");
+            throw new ConflictException("A refund is pending or needs reconciliation. Check Razorpay before requesting another refund.");
+        // A processed deduction is also a settled portion of the captured amount.
+        // Subtract both the customer refund and the retained charge so a later
+        // refund cannot accidentally return money that operations explicitly kept.
+        long alreadySettled = existing.stream().filter(r -> r.getStatus() == RefundStatus.PROCESSED)
+                .mapToLong(PaymentService::settledAmount).sum();
+        long available = order.getAmountPaise() - alreadySettled;
+        Long deductionInput = request.deductionPaise();
+        long deduction = deductionInput == null ? 0 : deductionInput;
+        if (available <= 0 || deduction < 0 || deduction >= available)
+            throw new BadRequestException("Deduction must be less than the remaining refundable balance.");
+        long amount = request.amountPaise() == null ? available - deduction : request.amountPaise();
+        if (amount < 100 || amount > available)
+            throw new BadRequestException("Razorpay refund must be at least ₹1 and cannot exceed the remaining captured balance.");
+        if (deductionInput != null && amount != available - deduction)
+            throw new BadRequestException("Refund plus retained charges must equal the remaining refundable balance.");
 
-        PaymentRefund refund = refunds.save(new PaymentRefund(order, amount, request.reason().trim()));
-        String providerRefundId = gateway.refund(order.getProviderPaymentId(), amount, request.reason()).id();
+        String deductionDescription = request.deductionDescription() == null ? null : request.deductionDescription().trim();
+        if (deduction > 0 && (deductionDescription == null || deductionDescription.length() < 3 || deductionDescription.length() > 300))
+            throw new BadRequestException("Explain the deducted charge in the deduction description (3–300 characters).");
+        if (deduction == 0) deductionDescription = null;
+
+        PaymentRefund refund = refunds.save(new PaymentRefund(order, amount, request.reason().trim(), deduction, deductionDescription));
+        String providerRefundId = gateway.refund(order.getProviderPaymentId(), amount, request.reason().trim(),
+                refund.getId().toString()).id();
+        if (providerRefundId == null || providerRefundId.isBlank())
+            throw new RefundGatewayUncertainException();
         refund.submitted(providerRefundId);
 
-        // Mock refunds are synchronous. Razorpay returns a refund request identifier;
-        // mark it processed only after the refund.processed webhook is verified.
+        // A Razorpay request is not a completed bank refund; wait for the signed webhook.
         if ("MOCK".equals(gateway.provider())) completeRefund(refund, providerRefundId);
         return refundResponse(refund);
     }
@@ -224,18 +282,26 @@ public class PaymentService {
         if (refund.getStatus() == RefundStatus.PROCESSED) return;
         PaymentOrder order = refund.getPaymentOrder();
         refund.processed(providerRefundId);
-        long total = refunds.findByPaymentOrderId(order.getId()).stream()
-                .filter(r -> r.getStatus() == RefundStatus.PROCESSED)
-                .mapToLong(PaymentRefund::getAmountPaise).sum();
+        List<PaymentRefund> processed = refunds.findByPaymentOrderId(order.getId()).stream()
+                .filter(r -> r.getStatus() == RefundStatus.PROCESSED).toList();
+        long totalRefunded = processed.stream().mapToLong(PaymentRefund::getAmountPaise).sum();
+        long totalSettled = processed.stream().mapToLong(PaymentService::settledAmount).sum();
         // During a synchronous mock refund, the just-created row must be counted
-        // even when the test repository has not yet included it in findByPaymentOrderId.
-        if (total < refund.getAmountPaise()) total = refund.getAmountPaise();
-        order.refundStatus(total);
-        if(total >= order.getAmountPaise()){
+        // even when the repository has not yet included it in findByPaymentOrderId.
+        if (processed.stream().noneMatch(r -> r.getId().equals(refund.getId()))) {
+            totalRefunded = Math.addExact(totalRefunded, refund.getAmountPaise());
+            totalSettled = Math.addExact(totalSettled, settledAmount(refund));
+        }
+        // REFUNDED means the captured balance has been fully settled: returned
+        // to the customer or explicitly retained as a documented deduction.
+        order.refundStatus(totalSettled);
+        // Reverse rewards and mark the booking refunded only when the full
+        // captured amount was actually returned to the customer.
+        if (totalRefunded >= order.getAmountPaise()) {
             loyaltyService.reverseRedemption(order.getUser(),order);
             loyaltyService.reverseEarn(order.getUser(),order);
         }
-        if (total >= order.getAmountPaise() && order.getPurpose() == PaymentPurpose.BOOKING)
+        if (totalRefunded >= order.getAmountPaise() && order.getPurpose() == PaymentPurpose.BOOKING)
             bookings.findById(order.getReferenceId()).ifPresent(Booking::refunded);
         notificationService.refund(order.getUser().getId(), order.getReceiptNumber(), refund.getAmountPaise());
     }
@@ -279,7 +345,7 @@ public class PaymentService {
                 throw new BadRequestException("Captured payment is missing its payment identifier");
             // Subscription charges and other Razorpay products may have no ordinary
             // order_id. They are audited as unmatched and must never fulfill a
-            // Jnapanam one-time order. subscription.charged owns recurring access.
+            // arena one-time order. subscription.charged owns recurring access.
             if (providerOrderId == null) {
                 result = "UNMATCHED";
             } else {
@@ -312,6 +378,17 @@ public class PaymentService {
                     notifyFulfilment(target);
                     result = "APPLIED";
                 }
+                } else {
+                    // A second captured charge for an already-paid order must not
+                    // fulfil the same purchase twice or disappear as an ordinary
+                    // observation. Keep the second provider payment ID in the
+                    // webhook audit row for staff reconciliation.
+                    PaymentOrder target = order.get();
+                    if (amount == null || amount != target.getAmountPaise()
+                            || !target.getCurrency().equals(entity.path("currency").asText()))
+                        throw new BadRequestException("Captured payment amount or currency mismatch");
+                    result = providerPaymentId.equals(target.getProviderPaymentId())
+                            ? "ALREADY_APPLIED" : "REVIEW_REQUIRED";
                 }
             }
         } else if (type.startsWith("refund.")) {
@@ -349,10 +426,18 @@ public class PaymentService {
                 objectId, providerOrderId, providerPaymentId, amount));
     }
 
+    private static long settledAmount(PaymentRefund refund) {
+        return Math.addExact(refund.getAmountPaise(), refund.getDeductionPaise());
+    }
+
     private static String safeIdentifier(String value) {
         if (value == null || value.isBlank()) return null;
         // Protect the audit row against oversized untrusted provider fields.
         return value.length() > 120 ? value.substring(0, 120) : value;
+    }
+
+    private static String normalizeCoupon(String value) {
+        return value == null || value.isBlank() ? null : value.trim().toUpperCase(Locale.ROOT);
     }
 
     private long resolveAmount(UUID userId, PaymentPurpose purpose, UUID ref) {
@@ -452,7 +537,7 @@ public class PaymentService {
     }
 
     private RefundResponse refundResponse(PaymentRefund r) {
-        return new RefundResponse(r.getId(), r.getAmountPaise(), r.getReason(), r.getStatus(), r.getProviderRefundId());
+        return new RefundResponse(r.getId(), r.getAmountPaise(), r.getReason(), r.getStatus(), r.getProviderRefundId(),r.getDeductionPaise(),r.getDeductionDescription(),r.getRequestedAt(),r.getProcessedAt());
     }
 
     private static String sha256(String value) {

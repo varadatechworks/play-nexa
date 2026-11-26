@@ -85,6 +85,13 @@ public class GlobalExceptionHandler {
                         ? reason : status.getReasonPhrase();
         return problem(status,safe);
     }
+    @ExceptionHandler(com.jnapanam.sportszone.payment.gateway.RefundGatewayUncertainException.class)
+    ResponseEntity<ProblemDetail> refundUncertain(com.jnapanam.sportszone.payment.gateway.RefundGatewayUncertainException ex) {
+        ResponseEntity<ProblemDetail> response=problem(HttpStatus.SERVICE_UNAVAILABLE,ex.getMessage());
+        response.getBody().setProperty("code","REFUND_STATUS_UNCERTAIN");
+        return response;
+    }
+
     @ExceptionHandler(Exception.class)
     ResponseEntity<ProblemDetail> unexpected(Exception ex){
         // Exception messages may contain credential/payment data: do not write them to logs.
