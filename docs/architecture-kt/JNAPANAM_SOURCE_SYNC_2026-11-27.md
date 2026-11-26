@@ -35,6 +35,7 @@ Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merg
 - The admin payment console now distinguishes a refund to the customer from a retained charge; a retained charge is not represented as money returned to the customer.
 - Jnapanam branding, domains, credentials, app identifiers and production environment values were not copied.
 - Tenant membership role `OPERATOR` maps to PlayNexa's actual `ROLE_OPERATIONS`; `ORGANIZER` is also tenant-scoped so global JWT roles cannot grant organizer access across arenas.
+- Operator assignment authorization checks ACTIVE tenant memberships when tenant context is present; global ADMIN cannot bypass facility scoping in another tenant. Platform SUPER_ADMIN remains the explicit platform-wide bypass.
 - PlayNexa's marketplace remains deferred.
 
 ## Verification still required
