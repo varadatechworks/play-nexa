@@ -47,9 +47,13 @@ class TenantDomainResolverIntegrationTest {
         UUID customerHosted = tenant("CUSTOMER_HOSTED");
         UUID managed = tenant("PLAYNEXA_MANAGED_SINGLE_TENANT");
         assertThat(resolver.resolveConfiguredTenant(customerHosted.toString(), "customer-hosted"))
-                .extracting(TenantContext::tenantId).contains(customerHosted);
+                .isPresent();
+        assertThat(resolver.resolveConfiguredTenant(customerHosted.toString(), "customer-hosted").orElseThrow().tenantId())
+                .isEqualTo(customerHosted);
         assertThat(resolver.resolveConfiguredTenant(managed.toString(), "playnexa-managed-single-tenant"))
-                .extracting(TenantContext::tenantId).contains(managed);
+                .isPresent();
+        assertThat(resolver.resolveConfiguredTenant(managed.toString(), "playnexa-managed-single-tenant").orElseThrow().tenantId())
+                .isEqualTo(managed);
         assertThat(resolver.resolveConfiguredTenant(managed.toString(), "saas")).isEmpty();
     }
 
