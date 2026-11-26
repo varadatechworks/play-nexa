@@ -53,6 +53,11 @@ public class TenantMembershipAuthorizationFilter extends OncePerRequestFilter {
         }
 
         boolean platformAdmin = hasAuthority(authentication, "ROLE_SUPER_ADMIN");
+        if ((path.equals("/api/v1/admin/users") || path.startsWith("/api/v1/admin/users/")) && !platformAdmin) {
+            deny(response, "PLATFORM_ADMIN_REQUIRED",
+                    "Platform administrator access is required for global user management.");
+            return;
+        }
         if (platformAdmin) {
             chain.doFilter(request, response);
             return;
@@ -121,9 +126,13 @@ public class TenantMembershipAuthorizationFilter extends OncePerRequestFilter {
     }
 
     private static void deny(HttpServletResponse response) throws IOException {
+        deny(response, "TENANT_MEMBERSHIP_REQUIRED", "An active membership is required for this arena.");
+    }
+
+    private static void deny(HttpServletResponse response, String code, String message) throws IOException {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json");
         response.setHeader("Cache-Control", "no-store");
-        response.getWriter().write("{\"code\":\"TENANT_MEMBERSHIP_REQUIRED\",\"message\":\"An active membership is required for this arena.\"}");
+        response.getWriter().write("{\"code\":\"" + code + "\",\"message\":\"" + message + "\"}");
     }
 }
