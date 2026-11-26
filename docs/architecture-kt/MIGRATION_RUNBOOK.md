@@ -1,13 +1,13 @@
 # Database schema, migration and rollback playbook
 
-> PlayNexa uses PostgreSQL and Flyway. **Do not treat a Markdown ER diagram as a physical schema dump.** Live migration history and the target instance must be inspected before applying anything. Last source review: 10 November 2026.
+> PlayNexa uses PostgreSQL and Flyway. **Do not treat a Markdown ER diagram as a physical schema dump.** Live migration history and the target instance must be inspected before applying anything. Last source review: 27 November 2026.
 
 ## Schema sources and index
 
 - Canonical SQL: `apps/backend/src/main/resources/db/migration/V*__*.sql`.
-- Full version/file catalogue: [SCHEMA_INDEX.md](SCHEMA_INDEX.md) and [SCHEMA_MIGRATIONS_01.md](SCHEMA_MIGRATIONS_01.md) through [SCHEMA_MIGRATIONS_05.md](SCHEMA_MIGRATIONS_05.md).
+- Full version/file catalogue: [SCHEMA_INDEX.md](SCHEMA_INDEX.md) and [SCHEMA_MIGRATIONS_01.md](SCHEMA_MIGRATIONS_01.md) through [SCHEMA_MIGRATIONS_06.md](SCHEMA_MIGRATIONS_06.md).
 - Core logical ER diagrams: [ER_BOOKING_PAYMENTS.md](ER_BOOKING_PAYMENTS.md).
-- The latest source migration includes **PlayNexa-dedicated branding** `V60__playnexa_arena_branding_settings.sql`. Its primary key `id=1` is designed for **one arena per dedicated database**, not a multi-tenant table.
+- PlayNexa migration lineage now extends through **V64**. `V60__playnexa_arena_branding_settings.sql` remains one arena per dedicated database; `V61` adds Shop counter-payment audit; `V62` adds only the SaaS control-plane registry; `V63` and `V64` add refund deduction amount/description. The V63/V64 SQL was adapted from later Jnapanam source migrations V60/V61 and was deliberately assigned new PlayNexa versions because those version numbers were already occupied.
 
 **Version lineage caution:** The separate Jnapanam project has evolved independently and can use the same Flyway version number for different SQL. Do **not** merge or copy migrations from Jnapanam into PlayNexa by matching their version numbers. Flyway migration identity includes version + checksum; a version collision requires a reviewed forward-migration and baseline strategy, not blind renumbering or `flyway repair`.
 
