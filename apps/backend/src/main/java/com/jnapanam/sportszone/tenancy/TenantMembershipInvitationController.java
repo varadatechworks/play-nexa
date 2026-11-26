@@ -15,6 +15,12 @@ public class TenantMembershipInvitationController {
         this.service = service;
     }
 
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    public TenantMembershipSelfResponse current(Authentication authentication) {
+        return service.current(UUID.fromString(authentication.getName()));
+    }
+
     @PostMapping("/accept")
     @PreAuthorize("isAuthenticated()")
     @ResponseStatus(HttpStatus.NO_CONTENT)
