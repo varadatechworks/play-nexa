@@ -7,6 +7,7 @@ Reviewed the latest Jnapanam mainline changes through 2026-11-26, including merg
 ## Ported to PlayNexa in this branch
 
 | Jnapanam source | Ported capability |
+| #91 | Added the iOS `ios-uat` EAS/TestFlight build profile and PlayNexa-specific release runbook. The production iOS bundle ID is explicitly required; no Apple credentials, signed IPA or TestFlight upload are claimed. |
 |---|---|
 | #97 | Refund settlement counts processed retained deductions as settled value, preventing over-refunds; loyalty reversal occurs only when the full captured amount is returned to the customer. |
 | #98 | Mobile bookings reload authoritative booking/payment status whenever the screen regains focus after hosted checkout. |
@@ -21,8 +22,6 @@ Reviewed the latest Jnapanam mainline changes through 2026-11-26, including merg
 | #108 | Training withdrawal invokes recurring-subscription cancellation once, removing a duplicate provider call. |
 | #109 | Training and tournament registration sheets scroll within the viewport and remain usable with the keyboard open. |
 | #110 | Added the responsive Promotions & Offers admin workspace for coupon/automatic offers, eligibility, limits, validity and discount configuration. |
-
-| #91 | Added the iOS `ios-uat` EAS/TestFlight build profile and PlayNexa-specific release runbook. The production iOS bundle ID is explicitly required; no Apple credentials, signed IPA or TestFlight upload are claimed. |
 
 ## Implementation notes
 
