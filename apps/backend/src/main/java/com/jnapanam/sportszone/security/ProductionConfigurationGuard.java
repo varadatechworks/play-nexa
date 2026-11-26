@@ -59,8 +59,9 @@ public class ProductionConfigurationGuard {
         } catch(NumberFormatException ex) { missing.add("JWT_ACCESS_MINUTES must be numeric"); }
         // An absent hosting-mode variable cannot silently opt a production
         // deployment into an imported single-arena database.
-        if (!"dedicated".equalsIgnoreCase(value("PLAYNEXA_HOSTING_MODE","")))
-            missing.add("PLAYNEXA_HOSTING_MODE must be explicitly dedicated; Shared SaaS remains blocked until tenant isolation is certified");
+        String hostingMode=value("PLAYNEXA_HOSTING_MODE","").toLowerCase(Locale.ROOT);
+        if (!java.util.Set.of("dedicated","customer-hosted","playnexa-managed-single-tenant").contains(hostingMode))
+            missing.add("PLAYNEXA_HOSTING_MODE must be dedicated, customer-hosted or playnexa-managed-single-tenant; Shared SaaS remains blocked until tenant isolation is certified");
         if(!missing.isEmpty())throw new IllegalStateException(
                 "Unsafe production configuration: "+String.join("; ",missing)
                 +". No secrets were logged.");
