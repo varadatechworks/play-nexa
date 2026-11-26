@@ -16,6 +16,11 @@ import com.jnapanam.sportszone.identity.repository.UserRepository;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -33,6 +38,8 @@ class OperatorAssignmentServiceScopeTest {
 
     @BeforeEach
     void setUp() {
+        SecurityContextHolder.clearContext();
+        TenantContextHolder.clear();
         when(users.findById(actorId)).thenReturn(Optional.of(operator));
         when(operator.getRoles()).thenReturn(Set.of(role));
         when(role.getName()).thenReturn(RoleName.OPERATIONS);
@@ -64,6 +71,44 @@ class OperatorAssignmentServiceScopeTest {
         when(jdbc.queryForObject(anyString(), eq(Integer.class), eq(facilityId), eq(actorId))).thenReturn(1);
 
         assertDoesNotThrow(() -> service.assertFacilityAllowed(actorId, facilityId));
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+        TenantContextHolder.clear();
+    }
+
+    @Test
+    void tenantScopedOperatorRoleIsHonoredEvenWhenGlobalDatabaseRoleDiffers() {
+        TenantContextHolder.set(new TenantContext(UUID.randomUUID(), "arena-one", "Arena One", "CUSTOMER_HOSTED"));
+        when(operator.getRoles()).thenReturn(Set.of());
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                actorId.toString(), null, Set.of(new SimpleGrantedAuthority("ROLE_OPERATIONS"))));
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), eq(slotId), eq(actorId))).thenReturn(1);
+
+        assertDoesNotThrow(() -> service.assertSlotAllowed(actorId, slotId));
+    }
+
+    @Test
+    void tenantScopedCustomerCannotInheritGlobalOperationsRole() {
+        TenantContextHolder.set(new TenantContext(UUID.randomUUID(), "arena-one", "Arena One", "CUSTOMER_HOSTED"));
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                actorId.toString(), null, Set.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"))));
+
+        assertThrows(ConflictException.class, () -> service.assertSlotAllowed(actorId, slotId));
+        verifyNoInteractions(jdbc);
+    }
+
+    @Test
+    void tenantScopedAdminRoleIsRecognizedWithoutGlobalAdminRole() {
+        TenantContextHolder.set(new TenantContext(UUID.randomUUID(), "arena-one", "Arena One", "CUSTOMER_HOSTED"));
+        when(operator.getRoles()).thenReturn(Set.of());
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                actorId.toString(), null, Set.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+        org.junit.jupiter.api.Assertions.assertTrue(service.isAdministratorActor(actorId));
+        verifyNoInteractions(jdbc);
     }
 
     @Test
