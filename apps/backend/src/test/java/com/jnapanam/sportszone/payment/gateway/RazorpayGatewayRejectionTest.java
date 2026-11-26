@@ -7,7 +7,7 @@ class RazorpayGatewayRejectionTest {
  @Test void rejectedPaymentReturnsSafeActionableText() {
   assertTrue(RazorpayGateway.rejectionMessage(401).contains("credentials"));
   assertTrue(RazorpayGateway.rejectionMessage(403).contains("merchant account"));
-  assertTrue(RazorpayGateway.rejectionMessage(400).contains("booking number"));
+  assertTrue(RazorpayGateway.rejectionMessage(400).contains("purchase reference"));
   assertFalse(RazorpayGateway.rejectionMessage(500).contains("Authorization"));
   assertTrue(RazorpayGateway.refundRejectionMessage(400, "unavailable").contains("refund"));
   assertFalse(RazorpayGateway.refundRejectionMessage(400, "unavailable").contains("create the payment order"));
