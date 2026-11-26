@@ -37,7 +37,7 @@ class TenantContextFilterTest {
     }
 
     @Test
-    void sharedSaasIsBlockedUntilTheExplicitSafetyGateIsOpened() throws Exception {
+    void sharedSaasIsBlockedWhenTheEnvironmentGateIsClosed() throws Exception {
         TenantDomainResolver resolver = mock(TenantDomainResolver.class);
         var env = new MockEnvironment().withProperty("PLAYNEXA_TENANT_CONTEXT_ENABLED", "true")
                 .withProperty("PLAYNEXA_HOSTING_MODE", "saas")
