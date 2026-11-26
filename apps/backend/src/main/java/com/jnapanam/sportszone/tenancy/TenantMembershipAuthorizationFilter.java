@@ -31,14 +31,16 @@ public class TenantMembershipAuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain chain) throws ServletException, IOException {
         String path = request.getRequestURI();
+        boolean safeRead = "GET".equalsIgnoreCase(request.getMethod())
+                || "HEAD".equalsIgnoreCase(request.getMethod());
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())
                 || path.startsWith("/api/v1/auth/") || path.startsWith("/api/v1/public/")
                 || path.startsWith("/actuator/")
-                || path.equals("/api/v1/commerce/settings")
-                || path.equals("/api/v1/commerce/categories")
-                || path.startsWith("/api/v1/commerce/products")
-                || path.equals("/api/v1/subscriptions/offerings")
-                || path.equals("/api/v1/subscriptions/config")) {
+                || (safeRead && (path.equals("/api/v1/commerce/settings")
+                        || path.equals("/api/v1/commerce/categories")
+                        || path.startsWith("/api/v1/commerce/products")
+                        || path.equals("/api/v1/subscriptions/offerings")
+                        || path.equals("/api/v1/subscriptions/config")))) {
             chain.doFilter(request, response);
             return;
         }
