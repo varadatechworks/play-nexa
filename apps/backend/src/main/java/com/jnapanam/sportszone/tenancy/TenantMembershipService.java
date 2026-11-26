@@ -84,6 +84,35 @@ public class TenantMembershipService {
         if ("OWNER".equals(existingRole)) throw new ConflictException("The tenant OWNER membership cannot be revoked");
     }
 
+    @Transactional
+    public void acceptInvitation(UUID userId) {
+        TenantContext tenant = TenantContextHolder.get();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (tenant == null || authentication == null || !authentication.isAuthenticated()
+                || !userId.toString().equals(authentication.getName())) {
+            throw new AccessDeniedException("An authenticated tenant member is required");
+        }
+        User user = users.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+        if (!user.isActive()) throw new ConflictException("An inactive account cannot accept an arena invitation");
+        int changed = jdbc.update("""
+                update playnexa_tenant_memberships
+                set membership_status='ACTIVE', updated_at=now()
+                where tenant_id=? and user_id=? and membership_status='INVITED'
+                """, tenant.tenantId(), userId);
+        if (changed > 0) return;
+        String status;
+        try {
+            status = jdbc.queryForObject("""
+                    select membership_status from playnexa_tenant_memberships
+                    where tenant_id=? and user_id=?
+                    """, String.class, tenant.tenantId(), userId);
+        } catch (EmptyResultDataAccessException ex) {
+            throw new NotFoundException("Tenant invitation not found");
+        }
+        if ("ACTIVE".equals(status)) return;
+        throw new ConflictException("This tenant invitation is no longer active");
+    }
+
     private TenantContext requireTenantAdmin(UUID actorId) {
         TenantContext tenant = TenantContextHolder.get();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
