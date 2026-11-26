@@ -2,7 +2,7 @@
 
 ## Source revision reviewed
 
-Reviewed the latest Jnapanam mainline changes through 2026-11-26, including merged PR #91 and PRs #97–#114. PR #102 was superseded by #104 and was not ported separately. Open PRs #113 and #115 are not ported; #114 provides the merged slot-level front-desk scope, while #115 equipment inventory scope awaits merge. Jnapanam remains the reference product; PlayNexa keeps its own branding, hosting model, tenant control-plane and deployment configuration.
+Reviewed the latest Jnapanam mainline changes through 2026-11-26, including merged PR #91 and PRs #97–#112 plus #114. PR #102 was superseded by #104 and was not ported separately. Open PRs #113 and #115 are not ported; #114 provides the merged slot-level front-desk scope, while #115 equipment inventory scope awaits merge. Jnapanam remains the reference product; PlayNexa keeps its own branding, hosting model, tenant control-plane and deployment configuration.
 
 ## Ported to PlayNexa in this branch
 
