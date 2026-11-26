@@ -18,10 +18,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-@Component
 public class TenantMembershipAuthorizationFilter extends OncePerRequestFilter {
     private static final Set<String> TENANT_AUTHORITIES = Set.of(
             "ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_COACH", "ROLE_SHOP_KEEPER", "ROLE_CUSTOMER");
