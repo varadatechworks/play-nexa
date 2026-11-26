@@ -86,7 +86,7 @@ The source-reviewed [PlayNexa technical handover](docs/architecture-kt/README.md
 [guarded Flyway migration procedure](docs/architecture-kt/MIGRATION_RUNBOOK.md),
 [API status/log and security standards](docs/architecture-kt/STATUS_LOGS_SECURITY.md),
 [page-by-page web/mobile route inventory](docs/architecture-kt/SCREEN_ROUTE_INVENTORY.md)
-and [maintenance/UAT/KT guidance](docs/architecture-kt/OPERATIONS_KT_UAT.md).
+and [maintenance/UAT/KT guidance](docs/architecture-kt/OPERATIONS_KT_UAT.md), and the [dedicated tenant provisioning runbook](docs/architecture-kt/DEDICATED_TENANT_PROVISIONING.md).
 
 The Node static audit inventories customer/admin/mobile source files; **it does not claim every route has passed visual or role-based browser/device UAT**. The imported full-featured booking system still requires a real staging database, sandbox payments/refunds, operator workflows and cross-tenant isolation before selling multi-tenant SaaS.
 
