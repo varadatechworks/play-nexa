@@ -25,7 +25,6 @@ import org.springframework.web.cors.*;
 
 @Configuration @EnableMethodSecurity @EnableConfigurationProperties({SecurityProperties.class, CorsProperties.class})
 public class SecurityConfig {
-    @Bean TenantMembershipAuthorizationFilter tenantMembershipAuthorizationFilter(JdbcTemplate jdbc) { return new TenantMembershipAuthorizationFilter(jdbc); }
     @Bean PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(12); }
     @Bean AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception { return configuration.getAuthenticationManager(); }
     @Bean SecretKey jwtSecretKey(SecurityProperties properties) { return TokenService.secretKey(properties.jwtSecret()); }
@@ -56,8 +55,7 @@ public class SecurityConfig {
     }
 
     @Bean SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationConverter converter,
-                                           Environment environment,
-                                           TenantMembershipAuthorizationFilter tenantMembershipFilter) throws Exception {
+                                           Environment environment, JdbcTemplate jdbc) throws Exception {
         return http.cors(Customizer.withDefaults()).csrf(csrf -> csrf.disable()).sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/commerce/settings", "/api/v1/commerce/categories", "/api/v1/commerce/products", "/api/v1/commerce/products/*").permitAll()
@@ -67,6 +65,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**", "/api/v1/public/**", "/actuator/health", "/actuator/health/liveness", "/actuator/health/readiness").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(converter)))
-                .addFilterAfter(tenantMembershipFilter, BearerTokenAuthenticationFilter.class).build();
+                .addFilterAfter(new TenantMembershipAuthorizationFilter(jdbc), BearerTokenAuthenticationFilter.class).build();
     }
 }
