@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 public class TokenService {
     private final JwtEncoder encoder;
     private final SecurityProperties properties;
-    @Value("${app.security.jwt-issuer:playnexa}")
+    @Value("${JWT_ISSUER:playnexa}")
     private String issuer = "playnexa";
     public TokenService(JwtEncoder encoder, SecurityProperties properties) { this.encoder = encoder; this.properties = properties; }
 
