@@ -86,3 +86,14 @@ To undo a bootstrap before the arena has live data, use a separately reviewed te
 ## Shared SaaS release gate
 
 This script cannot create a SaaS tenant or open shared hosting. The hard-coded code-level SaaS block remains in TenantContextFilter. Shared SaaS still requires tenant IDs and database-enforced isolation on all tenant-owned tables, transaction-local database context, composite relationships, asynchronous boundary scoping, and hostile cross-tenant tests. See Tenant context and SaaS release gate.
+
+
+## Add arena staff after bootstrap
+
+After the initial OWNER membership is provisioned, the tenant OWNER/ADMIN can manage staff memberships through the authenticated tenant membership API:
+
+- `GET /api/v1/admin/tenant-memberships` — list members in the current tenant only
+- `PUT /api/v1/admin/tenant-memberships/{userId}` — assign `ADMIN`, `OPERATOR`, `COACH`, `ORGANIZER`, `SHOPKEEPER` or `CUSTOMER` with status `INVITED`, `ACTIVE`, `SUSPENDED` or `REVOKED`
+- `DELETE /api/v1/admin/tenant-memberships/{userId}` — revoke access without deleting history
+
+The user account must already exist and be active. OWNER cannot be assigned, overwritten or revoked through this endpoint; ownership transfer requires a separately reviewed procedure. Tenant administrators cannot use global `/api/v1/admin/users` endpoints while tenant context is active; those remain platform SUPER_ADMIN-only.
