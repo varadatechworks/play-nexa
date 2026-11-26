@@ -23,6 +23,12 @@ public class TenantMembershipController {
         return service.list(user(authentication));
     }
 
+    @PostMapping
+    public TenantMembershipResponse addByEmail(Authentication authentication,
+            @Valid @RequestBody TenantMembershipInviteRequest request) {
+        return service.addByEmail(user(authentication), request);
+    }
+
     @PutMapping("/{userId}")
     public TenantMembershipResponse upsert(Authentication authentication, @PathVariable UUID userId,
             @Valid @RequestBody TenantMembershipUpdateRequest request) {
