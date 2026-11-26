@@ -12,8 +12,10 @@ import com.jnapanam.sportszone.common.exception.ConflictException;
 import com.jnapanam.sportszone.common.exception.NotFoundException;
 import com.jnapanam.sportszone.identity.model.User;
 import com.jnapanam.sportszone.identity.repository.UserRepository;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
@@ -104,6 +106,32 @@ class VenueCheckInServiceTest {
     void alreadyCheckedInBookingCannotBeCheckedInAgain() {
         when(customer.getId()).thenReturn(customerId);
         when(booking.getCheckedInAt()).thenReturn(Instant.now());
+
+        assertThrows(ConflictException.class,
+                () -> service.checkIn(customerId, VenueCheckInService.VENUE_CODE, "PNX-TEST1234"));
+        verifyNoInteractions(users);
+    }
+
+    @Test
+    void checkInIsRejectedBeforeThirtyMinuteWindowOpens() {
+        when(customer.getId()).thenReturn(customerId);
+        when(slot.getStartTime()).thenReturn(LocalTime.of(10, 0));
+        when(slot.getEndTime()).thenReturn(LocalTime.of(11, 0));
+        service.setClock(Clock.fixed(
+                LocalDate.now(VENUE_ZONE).atTime(9, 29).atZone(VENUE_ZONE).toInstant(), VENUE_ZONE));
+
+        assertThrows(ConflictException.class,
+                () -> service.checkIn(customerId, VenueCheckInService.VENUE_CODE, "PNX-TEST1234"));
+        verifyNoInteractions(users);
+    }
+
+    @Test
+    void checkInIsRejectedAfterSlotWindowCloses() {
+        when(customer.getId()).thenReturn(customerId);
+        when(slot.getStartTime()).thenReturn(LocalTime.of(10, 0));
+        when(slot.getEndTime()).thenReturn(LocalTime.of(11, 0));
+        service.setClock(Clock.fixed(
+                LocalDate.now(VENUE_ZONE).atTime(11, 1).atZone(VENUE_ZONE).toInstant(), VENUE_ZONE));
 
         assertThrows(ConflictException.class,
                 () -> service.checkIn(customerId, VenueCheckInService.VENUE_CODE, "PNX-TEST1234"));
