@@ -22,7 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 public class TenantMembershipAuthorizationFilter extends OncePerRequestFilter {
     private static final Set<String> TENANT_AUTHORITIES = Set.of(
-            "ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_COACH", "ROLE_SHOP_KEEPER", "ROLE_CUSTOMER");
+            "ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_OPERATIONS", "ROLE_COACH", "ROLE_ORGANIZER", "ROLE_SHOP_KEEPER", "ROLE_CUSTOMER");
     private final JdbcTemplate jdbc;
 
     public TenantMembershipAuthorizationFilter(JdbcTemplate jdbc) { this.jdbc = jdbc; }
@@ -105,7 +105,8 @@ public class TenantMembershipAuthorizationFilter extends OncePerRequestFilter {
         if (role == null) return null;
         return switch (role) {
             case "OWNER", "ADMIN" -> "ROLE_ADMIN";
-            case "OPERATOR" -> "ROLE_OPERATOR";
+            case "OPERATOR" -> "ROLE_OPERATIONS";
+            case "ORGANIZER" -> "ROLE_ORGANIZER";
             case "COACH" -> "ROLE_COACH";
             case "SHOPKEEPER" -> "ROLE_SHOP_KEEPER";
             case "CUSTOMER" -> "ROLE_CUSTOMER";
