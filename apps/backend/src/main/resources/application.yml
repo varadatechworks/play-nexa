@@ -1,10 +1,10 @@
 spring:
   application:
-    name: jnapanam-sports-zone-backend
+    name: playnexa-backend
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/jnapanam_sports_zone}
-    username: ${DB_USERNAME:jnapanam}
-    password: ${DB_PASSWORD:jnapanam_dev}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/playnexa}
+    username: ${DB_USERNAME:playnexa}
+    password: ${DB_PASSWORD:playnexa_dev}
   jpa:
     open-in-view: false
     hibernate:
@@ -56,7 +56,7 @@ app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
   security:
-    jwt-secret: ${JWT_SECRET:Sm5hcGFuYW0gU3BvcnRzIFpvbmUgRGV2ZWxvcG1lbnQgSldUIFNlY3JldCAyMDI2IQ==}
+    jwt-secret: ${JWT_SECRET:UGxheU5leGEgRGV2ZWxvcG1lbnQgSldUIFNlY3JldCAyMDI2IQ==}
     access-token-minutes: ${JWT_ACCESS_MINUTES:43200}
     refresh-token-days: ${JWT_REFRESH_DAYS:30}
     expose-development-reset-token: ${EXPOSE_DEVELOPMENT_RESET_TOKEN:false}
@@ -68,7 +68,7 @@ app:
   bootstrap:
     super-admin-email: ${BOOTSTRAP_SUPER_ADMIN_EMAIL:}
     super-admin-password: ${BOOTSTRAP_SUPER_ADMIN_PASSWORD:}
-    super-admin-name: ${BOOTSTRAP_SUPER_ADMIN_NAME:Jnapanam Super Admin}
+    super-admin-name: ${BOOTSTRAP_SUPER_ADMIN_NAME:PlayNexa Super Admin}
 
   notification:
     reminder-delay-ms: ${REMINDER_DELAY_MS:60000}
