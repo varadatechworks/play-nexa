@@ -83,11 +83,13 @@ class OperatorAssignmentServiceScopeTest {
     @Test
     void tenantScopedOperatorRoleIsHonoredEvenWhenGlobalDatabaseRoleDiffers() {
         TenantContextHolder.set(new TenantContext(UUID.randomUUID(), "arena-one", "Arena One", "CUSTOMER_HOSTED"));
-        when(operator.getRoles()).thenReturn(Set.of());
+        when(role.getName()).thenReturn(RoleName.ADMIN);
+        when(operator.getRoles()).thenReturn(Set.of(role));
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 actorId.toString(), null, Set.of(new SimpleGrantedAuthority("ROLE_OPERATIONS"))));
         when(jdbc.queryForObject(anyString(), eq(Integer.class), eq(slotId), eq(actorId))).thenReturn(1);
 
+        org.junit.jupiter.api.Assertions.assertFalse(service.isAdministratorActor(actorId));
         assertDoesNotThrow(() -> service.assertSlotAllowed(actorId, slotId));
     }
 
