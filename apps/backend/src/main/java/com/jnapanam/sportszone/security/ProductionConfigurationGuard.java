@@ -62,6 +62,11 @@ public class ProductionConfigurationGuard {
         String hostingMode=value("PLAYNEXA_HOSTING_MODE","").toLowerCase(Locale.ROOT);
         if (!java.util.Set.of("dedicated","customer-hosted","playnexa-managed-single-tenant").contains(hostingMode))
             missing.add("PLAYNEXA_HOSTING_MODE must be dedicated, customer-hosted or playnexa-managed-single-tenant; Shared SaaS remains blocked until tenant isolation is certified");
+        if (Boolean.parseBoolean(value("PLAYNEXA_TENANT_CONTEXT_ENABLED","false"))
+                && value("PLAYNEXA_TENANT_ID","").isBlank())
+            missing.add("PLAYNEXA_TENANT_ID is required when tenant context is enabled");
+        if (Boolean.parseBoolean(value("PLAYNEXA_SHARED_SAAS_READY","false")))
+            missing.add("PLAYNEXA_SHARED_SAAS_READY must remain false until tenant data-plane isolation is certified");
         if(!missing.isEmpty())throw new IllegalStateException(
                 "Unsafe production configuration: "+String.join("; ",missing)
                 +". No secrets were logged.");
