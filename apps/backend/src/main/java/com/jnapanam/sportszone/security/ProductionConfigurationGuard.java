@@ -46,7 +46,11 @@ public class ProductionConfigurationGuard {
         try {
             URI issuerUri=URI.create(issuer);
             if (!"https".equalsIgnoreCase(issuerUri.getScheme()) || issuerUri.getHost()==null
-                    || issuerUri.getHost().endsWith(".invalid") || "localhost".equalsIgnoreCase(issuerUri.getHost())
+                    || (issuerUri.getHost().toLowerCase(Locale.ROOT).endsWith(".invalid")
+                    || issuerUri.getHost().toLowerCase(Locale.ROOT).endsWith(".example")
+                    || issuerUri.getHost().toLowerCase(Locale.ROOT).endsWith(".test")
+                    || "localhost".equalsIgnoreCase(issuerUri.getHost())
+                    || issuerUri.getHost().toLowerCase(Locale.ROOT).endsWith(".localhost"))
                     || issuerUri.getRawUserInfo()!=null || issuerUri.getFragment()!=null)
                 missing.add("JWT_ISSUER must be a canonical public HTTPS URL");
         } catch (RuntimeException ex) {
