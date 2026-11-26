@@ -64,6 +64,8 @@ class TenantDomainResolverIntegrationTest {
         assertThat(TenantDomainResolver.normalizeHostname("localhost")).isNull();
         assertThat(TenantDomainResolver.normalizeHostname("bad host.example.test")).isNull();
         assertThat(TenantDomainResolver.normalizeHostname("[::1]")).isNull();
+        assertThat(TenantDomainResolver.normalizeHostname("arena.example.test:bad")).isNull();
+        assertThat(TenantDomainResolver.normalizeHostname("arena.example.test:99999")).isNull();
     }
 
     private UUID tenant(String mode) {
