@@ -45,6 +45,13 @@ class ProductionConfigurationGuardTest {
         assertDoesNotThrow(()->new ProductionConfigurationGuard(secureProduction()).validate());
     }
 
+    @Test void acceptsBothDedicatedHostingArrangements() {
+        assertDoesNotThrow(()->new ProductionConfigurationGuard(secureProduction()
+                .withProperty("PLAYNEXA_HOSTING_MODE","customer-hosted")).validate());
+        assertDoesNotThrow(()->new ProductionConfigurationGuard(secureProduction()
+                .withProperty("PLAYNEXA_HOSTING_MODE","playnexa-managed-single-tenant")).validate());
+    }
+
     @Test void rejectsMockPaymentsAndTestOtpAndLongLivedTokens() {
         var environment=secureProduction()
                 .withProperty("app.payment.provider","mock")
