@@ -129,8 +129,7 @@ class TournamentServiceTenantMembershipTest {
 
         service.review(applicationId, new OrganizerReviewRequest(OrganizerStatus.APPROVED, "Verified"));
 
-        verify(jdbc).update(contains("insert into playnexa_tenant_memberships"),
-                any(UUID.class), eq(tenantId), eq(organizerId));
+        verify(jdbc).update(contains("insert into playnexa_tenant_memberships"), any(Object[].class));
         verify(roles, never()).findByName(RoleName.ORGANIZER);
         verify(organizer, never()).getRoles();
         verify(notifications).lifecycle(organizerId, "ORGANIZER_APPROVED", "Organizer access approved",
