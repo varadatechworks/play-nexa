@@ -20,10 +20,12 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import com.jnapanam.sportszone.tenancy.TenantMembershipAuthorizationFilter;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.cors.*;
 
 @Configuration @EnableMethodSecurity @EnableConfigurationProperties({SecurityProperties.class, CorsProperties.class})
 public class SecurityConfig {
+    @Bean TenantMembershipAuthorizationFilter tenantMembershipAuthorizationFilter(JdbcTemplate jdbc) { return new TenantMembershipAuthorizationFilter(jdbc); }
     @Bean PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(12); }
     @Bean AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception { return configuration.getAuthenticationManager(); }
     @Bean SecretKey jwtSecretKey(SecurityProperties properties) { return TokenService.secretKey(properties.jwtSecret()); }
