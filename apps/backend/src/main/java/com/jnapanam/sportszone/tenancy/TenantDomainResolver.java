@@ -27,7 +27,7 @@ public class TenantDomainResolver {
                   and t.hosting_mode='MULTI_TENANT_SAAS'
                   and s.subscription_status in ('TRIAL','ACTIVE')
                   and (s.current_period_end is null or s.current_period_end>now())
-                  and (s.subscription_status<>'TRIAL' or s.trial_ends_at is null or s.trial_ends_at>now())
+                  and (s.subscription_status<>'TRIAL' or s.trial_ends_at>now())
                 """, (rs, row) -> new TenantContext(
                 rs.getObject("id", UUID.class), rs.getString("slug"),
                 rs.getString("display_name"), rs.getString("hosting_mode")), hostname);
