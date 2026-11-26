@@ -18,6 +18,9 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
+import com.jnapanam.sportszone.tenancy.TenantMembershipAuthorizationFilter;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.cors.*;
 
 @Configuration @EnableMethodSecurity @EnableConfigurationProperties({SecurityProperties.class, CorsProperties.class})
@@ -52,7 +55,7 @@ public class SecurityConfig {
     }
 
     @Bean SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationConverter converter,
-                                           Environment environment) throws Exception {
+                                           Environment environment, JdbcTemplate jdbc) throws Exception {
         return http.cors(Customizer.withDefaults()).csrf(csrf -> csrf.disable()).sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/commerce/settings", "/api/v1/commerce/categories", "/api/v1/commerce/products", "/api/v1/commerce/products/*").permitAll()
@@ -61,6 +64,7 @@ public class SecurityConfig {
                         .access((authentication, context) -> new AuthorizationDecision(!production(environment)))
                         .requestMatchers("/api/v1/auth/**", "/api/v1/public/**", "/actuator/health", "/actuator/health/liveness", "/actuator/health/readiness").permitAll()
                         .anyRequest().authenticated())
-                .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(converter))).build();
+                .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(converter)))
+                .addFilterAfter(new TenantMembershipAuthorizationFilter(jdbc), BearerTokenAuthenticationFilter.class).build();
     }
 }

@@ -94,7 +94,13 @@ Production setup requires `APP_ENV=production` (or an active Spring production p
 
 ## 2026-11-10 UI, audit and technical handover updates
 
-A [second-pass source inspection](docs/architecture-kt/SOURCE_REVIEW_2026-11-10.md) covers all **39 web pages and 20 Expo mobile screens** at source level. Corrected false MFA prompts, safe 4xx/5xx classification, spoof-resistant audit metadata, an explicit production dedicated-mode gate, venue-branded welcome notifications, and packaging metadata. Added [extended ER models](docs/architecture-kt/ER_EXTENDED_MODULES.md) plus a [read-only schema exporter](scripts/schema-export-playnexa.sh). These commits do **not** certify browser UAT, PostgreSQL migration execution, live gateway reconciliation, shared SaaS or marketplace availability.
+A [second-pass source inspection](docs/architecture-kt/SOURCE_REVIEW_2026-11-10.md) covers all **40 web pages and 20 Expo mobile screens** at source level. Corrected false MFA prompts, safe 4xx/5xx classification, spoof-resistant audit metadata, an explicit production hosting-mode allowlist for customer-hosted and PlayNexa-managed single-tenant deployments, venue-branded welcome notifications, and packaging metadata. Added [extended ER models](docs/architecture-kt/ER_EXTENDED_MODULES.md) plus a [read-only schema exporter](scripts/schema-export-playnexa.sh). These commits do **not** certify browser UAT, PostgreSQL migration execution, live gateway reconciliation, shared SaaS or marketplace availability.
+
+## 2026-11-27 source sync and tenancy foundation
+
+The latest Jnapanam product fixes (source PR #91 and #97–#110) have been reviewed and selectively ported; see the [source sync record](docs/architecture-kt/JNAPANAM_SOURCE_SYNC_2026-11-27.md). This includes refund deduction transparency and over-refund protection, Razorpay idempotency/reconciliation, Shop cancellation/return safeguards, Promotions admin, mobile booking refresh and registration-sheet usability. An iOS TestFlight profile and release runbook are included, but no signed iOS build or TestFlight upload is claimed without Apple Developer credentials.
+
+The tenant context foundation now resolves verified SaaS domains, scopes tenant membership roles and supports customer-hosted and PlayNexa-managed single-tenant configuration. See the [tenant context and SaaS release gate](docs/architecture-kt/TENANT_CONTEXT_AND_SAAS_RELEASE_GATE.md). **Shared SaaS remains disabled**: tenant-owned data tables, composite tenant relationships, PostgreSQL RLS, background-job/webhook/file isolation and hostile cross-tenant tests are still required. The tenant context foundation is not a data-isolation boundary.
 
 ## Local demo loading and UI regression checks
 

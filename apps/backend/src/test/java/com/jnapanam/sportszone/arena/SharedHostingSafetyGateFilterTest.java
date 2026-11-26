@@ -26,6 +26,11 @@ class SharedHostingSafetyGateFilterTest {
         }
     }
 
+    @Test void bothDedicatedHostingModelsAllowApplicationRequests() throws Exception {
+        assertEquals(200,run("customer-hosted","/api/v1/public/sports").getStatus());
+        assertEquals(200,run("playnexa-managed-single-tenant","/api/v1/public/sports").getStatus());
+    }
+
     @Test void unknownModeAlsoFailsClosed() throws Exception {
         assertEquals(503,run("shared", "/api/v1/public/arena-branding").getStatus());
     }

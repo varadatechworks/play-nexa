@@ -1,5 +1,7 @@
 package com.jnapanam.sportszone.security;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -45,6 +47,13 @@ class ProductionConfigurationGuardTest {
         assertDoesNotThrow(()->new ProductionConfigurationGuard(secureProduction()).validate());
     }
 
+    @Test void acceptsBothDedicatedHostingArrangements() {
+        assertDoesNotThrow(()->new ProductionConfigurationGuard(secureProduction()
+                .withProperty("PLAYNEXA_HOSTING_MODE","customer-hosted")).validate());
+        assertDoesNotThrow(()->new ProductionConfigurationGuard(secureProduction()
+                .withProperty("PLAYNEXA_HOSTING_MODE","playnexa-managed-single-tenant")).validate());
+    }
+
     @Test void rejectsMockPaymentsAndTestOtpAndLongLivedTokens() {
         var environment=secureProduction()
                 .withProperty("app.payment.provider","mock")
@@ -64,6 +73,15 @@ class ProductionConfigurationGuardTest {
                 ()->new ProductionConfigurationGuard(environment).validate()).getMessage();
         assertTrue(message.contains("PLAYNEXA_HOSTING_MODE"));
         assertTrue(message.contains("Shared SaaS"));
+    }
+
+    @Test void tenantContextRequiresAConfiguredTenantIdAndSharedSaasReadyMustStayFalse() {
+        assertThatThrownBy(()->new ProductionConfigurationGuard(secureProduction()
+                .withProperty("PLAYNEXA_TENANT_CONTEXT_ENABLED","true")).validate())
+                .hasMessageContaining("PLAYNEXA_TENANT_ID is required");
+        assertThatThrownBy(()->new ProductionConfigurationGuard(secureProduction()
+                .withProperty("PLAYNEXA_SHARED_SAAS_READY","true")).validate())
+                .hasMessageContaining("PLAYNEXA_SHARED_SAAS_READY must remain false");
     }
 
     @Test void rejectsSharedModeAndHttpOrLocalhostCors() {

@@ -29,8 +29,10 @@ public class SharedHostingSafetyGateFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
             HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        String hosting=environment.getProperty("PLAYNEXA_HOSTING_MODE","dedicated");
-        if (!"dedicated".equalsIgnoreCase(hosting)) {
+        String hosting=environment.getProperty("PLAYNEXA_HOSTING_MODE","dedicated").trim().toLowerCase(java.util.Locale.ROOT);
+        boolean dedicatedDeployment = java.util.Set.of(
+                "dedicated", "customer-hosted", "playnexa-managed-single-tenant").contains(hosting);
+        if (!dedicatedDeployment) {
             // Only health endpoints may be queried by deployment infrastructure.
             // Unknown modes are disabled too, preventing accidental exposure.
             String path=request.getRequestURI();

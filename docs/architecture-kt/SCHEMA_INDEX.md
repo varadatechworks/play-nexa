@@ -1,5 +1,5 @@
 # PlayNexa — Complete Source Migration Catalog Index
-> All **63** SQL migration files on this branch were indexed in six ordered sections on 2026-11-27; source-derived, **not** confirmed deployed database state.
+> All **64** SQL migration files on this branch were indexed in six ordered sections on 2026-11-27; source-derived, **not** confirmed deployed database state.
 
 | Files in migration order | Documentation |
 |---|---|
@@ -8,9 +8,9 @@
 | 29–42 | [Part 3: table/column dictionary and ER](SCHEMA_MIGRATIONS_03.md) |
 | 43–56 | [Part 4: table/column dictionary and ER](SCHEMA_MIGRATIONS_04.md) |
 | 57–59 | [Part 5: table/column dictionary and ER](SCHEMA_MIGRATIONS_05.md) |
-| 60–64 | [Part 6: PlayNexa branding, counter audit, tenant control plane and refund deductions](SCHEMA_MIGRATIONS_06.md)
+| 60–65 | [Part 6: PlayNexa branding, counter audit, tenant control plane, refund deductions and tenant modes](SCHEMA_MIGRATIONS_06.md)
 
-> Flyway version range ends at V64; version numbers are not file counts. V42 is absent from the current migration tree. |
+> Flyway version range ends at V65; version numbers are not file counts. V42 is absent from the current migration tree. |
 
 See [architecture, deployment and KT runbook](README.md) and [controlled migration script](migrate-safe.sh).
 
