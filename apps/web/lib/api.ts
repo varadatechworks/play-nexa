@@ -157,9 +157,37 @@ export async function apiBlob(path:string):Promise<Blob>{
   return response.blob();
 }
 
+export type TenantMembershipSelf = { tenantId: string; role: string | null; membershipStatus: string };
+
+const TENANT_ROLE_MAP: Record<string, string[]> = {
+  OWNER: ["ADMIN"],
+  ADMIN: ["ADMIN"],
+  OPERATOR: ["OPERATIONS"],
+  COACH: ["COACH"],
+  ORGANIZER: ["ORGANIZER"],
+  SHOPKEEPER: ["SHOP_KEEPER"],
+  CUSTOMER: ["CUSTOMER"],
+};
+
+/** The tenant membership is authoritative for UI navigation whenever tenant context exists. */
+async function currentUserProfile(): Promise<User> {
+  const profile = await api<User>("/api/v1/profile/me");
+  try {
+    const membership = await api<TenantMembershipSelf | null>("/api/v1/tenant-memberships/me");
+    if (!membership) return profile; // Legacy non-tenant installation.
+    const roles = membership.membershipStatus === "ACTIVE"
+      ? [...(TENANT_ROLE_MAP[membership.role || ""] || [])]
+      : [];
+    if (profile.roles.includes("SUPER_ADMIN")) roles.push("SUPER_ADMIN");
+    return { ...profile, roles: [...new Set(roles)] };
+  } catch {
+    return profile;
+  }
+}
+
 export async function login(email: string, password: string, mfaCode?: string) {
   const tokens = await api<TokenResponse>("/api/v1/auth/login", { method: "POST", body: JSON.stringify({ email, password, mfaCode }) }, false);
-  saveTokens(tokens); return api<User>("/api/v1/profile/me");
+  saveTokens(tokens); return currentUserProfile();
 }
 
 export async function requestEmailRegistrationOtp(email:string){return api<void>("/api/v1/auth/otp/registration/email/request",{method:"POST",body:JSON.stringify({email})},false);}
@@ -173,7 +201,7 @@ export async function register(payload: { fullName: string; email: string; mobil
   saveTokens(tokens); return api<User>("/api/v1/profile/me");
 }
 
-export async function restoreSession() { return (await refreshAccess()) ? api<User>("/api/v1/profile/me") : null; }
+export async function restoreSession() { return (await refreshAccess()) ? currentUserProfile() : null; }
 export async function logout() {
   const refreshToken = typeof window === "undefined" ? null : localStorage.getItem(REFRESH_KEY);
   if (refreshToken) await api<void>("/api/v1/auth/logout", { method: "POST", body: JSON.stringify({ refreshToken }) }).catch(() => undefined);
