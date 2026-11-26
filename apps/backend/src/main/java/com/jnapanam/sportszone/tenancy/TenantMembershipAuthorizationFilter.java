@@ -30,6 +30,11 @@ public class TenantMembershipAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain chain) throws ServletException, IOException {
+        String path = request.getRequestURI();
+        if (path.startsWith("/api/v1/auth/") || path.startsWith("/actuator/")) {
+            chain.doFilter(request, response);
+            return;
+        }
         TenantContext tenant = TenantContextHolder.get();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (tenant == null || authentication == null || !authentication.isAuthenticated()
