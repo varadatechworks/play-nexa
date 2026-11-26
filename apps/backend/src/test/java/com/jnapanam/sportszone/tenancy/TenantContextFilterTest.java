@@ -26,12 +26,14 @@ class TenantContextFilterTest {
                 .withProperty("PLAYNEXA_TENANT_ID", id.toString());
         var filter = new TenantContextFilter(env, resolver);
         var request = new MockHttpServletRequest("GET", "/api/v1/bookings");
+        request.addHeader("X-Tenant-ID", UUID.randomUUID().toString()); // Never trust client-supplied tenant selection.
         var response = new MockHttpServletResponse();
 
         filter.doFilter(request, response, (req, res) -> assertThat(TenantContextHolder.get()).isEqualTo(context));
 
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat(TenantContextHolder.get()).isNull();
+        verify(resolver).resolveConfiguredTenant(id.toString(), "customer-hosted");
     }
 
     @Test
