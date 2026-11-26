@@ -56,7 +56,18 @@ public class TenantDomainResolver {
         String host = rawHost.trim();
         if (host.startsWith("[")) return null; // IPv6 literals are not tenant domains.
         int colon = host.indexOf(':');
-        if (colon >= 0) host = host.substring(0, colon);
+        if (colon >= 0) {
+            if (host.indexOf(':', colon + 1) >= 0) return null;
+            String port = host.substring(colon + 1);
+            if (!port.matches("[0-9]{1,5}")) return null;
+            try {
+                int portNumber = Integer.parseInt(port);
+                if (portNumber < 1 || portNumber > 65535) return null;
+            } catch (NumberFormatException ex) {
+                return null;
+            }
+            host = host.substring(0, colon);
+        }
         if (host.endsWith(".")) host = host.substring(0, host.length() - 1);
         if (host.isBlank() || host.contains("/") || host.contains("@")) return null;
         try {
