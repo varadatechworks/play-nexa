@@ -19,6 +19,9 @@ const city = process.env.ARENA_APP_CITY || "Bengaluru";
 const isRelease = process.env.PLAYNEXA_BRANDED_RELEASE === "true" ||
   ["production","prod","release"].includes((process.env.EAS_BUILD_PROFILE || "").toLowerCase());
 
+if (isRelease && process.env.EAS_BUILD_PLATFORM === "ios" && !process.env.ARENA_IOS_BUNDLE_ID) {
+  throw new Error("Branded iOS release requires a unique ARENA_IOS_BUNDLE_ID");
+}
 if (isRelease && (!process.env.ARENA_ANDROID_PACKAGE ||
     !process.env.ARENA_APP_ICON_PATH || !process.env.ARENA_APP_SCHEME)) {
   throw new Error("Branded release requires unique app package, icon and deep-link scheme");
