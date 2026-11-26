@@ -45,6 +45,11 @@ class TenantMembershipServiceTest {
         when(target.isActive()).thenReturn(true);
     }
 
+    private void authenticateTarget() {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                targetId.toString(), null, List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"))));
+    }
+
     @AfterEach
     void tearDown() {
         TenantContextHolder.clear();
@@ -129,6 +134,7 @@ class TenantMembershipServiceTest {
 
     @Test
     void invitedUserCanAcceptMembershipInTheCurrentTenant() {
+        authenticateTarget();
         when(jdbc.update(anyString(), any(Object[].class))).thenReturn(1);
 
         service.acceptInvitation(targetId);
@@ -138,6 +144,7 @@ class TenantMembershipServiceTest {
 
     @Test
     void acceptingAlreadyActiveMembershipIsIdempotent() {
+        authenticateTarget();
         when(jdbc.update(anyString(), any(Object[].class))).thenReturn(0);
         when(jdbc.queryForObject(anyString(), eq(String.class), eq(tenantId), eq(targetId))).thenReturn("ACTIVE");
 
@@ -146,6 +153,7 @@ class TenantMembershipServiceTest {
 
     @Test
     void revokedInvitationCannotBeAccepted() {
+        authenticateTarget();
         when(jdbc.update(anyString(), any(Object[].class))).thenReturn(0);
         when(jdbc.queryForObject(anyString(), eq(String.class), eq(tenantId), eq(targetId))).thenReturn("REVOKED");
 
