@@ -43,11 +43,23 @@ public class TenantMembershipService {
     }
 
     @Transactional
+    public TenantMembershipResponse addByEmail(UUID actorId, TenantMembershipInviteRequest request) {
+        TenantContext tenant = requireTenantAdmin(actorId);
+        User user = users.findByEmailIgnoreCase(request.email().trim())
+                .orElseThrow(() -> new NotFoundException("No existing account was found for that email"));
+        return upsertMember(tenant, actorId, user, request.role(), request.status());
+    }
+
+    @Transactional
     public TenantMembershipResponse upsert(UUID actorId, UUID userId, TenantMembershipUpdateRequest request) {
         TenantContext tenant = requireTenantAdmin(actorId);
         User user = users.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
-        if (!user.isActive()) throw new ConflictException("An inactive account cannot be added to an arena");
+        return upsertMember(tenant, actorId, user, request.role(), request.status());
+    }
 
+    private TenantMembershipResponse upsertMember(TenantContext tenant, UUID actorId, User user,
+            TenantMembershipRole role, TenantMembershipStatus status) {
+        if (!user.isActive()) throw new ConflictException("An inactive account cannot be added to an arena");
         int changed = jdbc.update("""
                 insert into playnexa_tenant_memberships
                     (id, tenant_id, user_id, role, membership_status, invited_by)
@@ -58,10 +70,10 @@ public class TenantMembershipService {
                     invited_by=excluded.invited_by,
                     updated_at=now()
                 where playnexa_tenant_memberships.role <> 'OWNER'
-                """, tenant.tenantId(), userId, request.role().name(), request.status().name(), actorId);
+                """, tenant.tenantId(), user.getId(), role.name(), status.name(), actorId);
         if (changed == 0) throw new ConflictException("The tenant OWNER membership is protected");
         return new TenantMembershipResponse(user.getId(), user.getFullName(), user.getEmail(),
-                request.role().name(), request.status().name());
+                role.name(), status.name());
     }
 
     @Transactional
