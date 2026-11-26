@@ -204,3 +204,8 @@ echo "Check schema history, health, rollback compatibility, audit and business s
 - [`docs/DEPLOYMENT_AND_ONBOARDING.md`](../../docs/DEPLOYMENT_AND_ONBOARDING.md)
 
 *Next update: reconcile against complete source branch and actual deployed schema; source file presence does not prove a production rollout, CI success or functional coverage.*
+
+
+## Dedicated tenant bootstrap
+
+Use [DEDICATED_TENANT_PROVISIONING.md](DEDICATED_TENANT_PROVISIONING.md) to provision the first tenant registry row, active subscription and owner membership for customer-hosted or PlayNexa-managed single-tenant installations. It does not enable shared SaaS.

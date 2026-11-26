@@ -34,6 +34,10 @@ Both run **one arena per database**, with separate hosting configuration, domain
 The only difference is who operates the infrastructure and who pays.
 The dedicated environment generator can produce non-secret settings; it cannot deploy or verify UAT.
 
+### Dedicated tenant bootstrap
+
+After applying migrations and creating the first administrator account, use the [dedicated tenant bootstrap runbook](docs/architecture-kt/DEDICATED_TENANT_PROVISIONING.md) and `bash scripts/provision-dedicated-tenant.sh` to create the tenant registry row, ACTIVE subscription and confirmed OWNER membership. The script is idempotent, requires explicit owner confirmation, supports only customer-hosted and PlayNexa-managed single-tenant modes, and does not mark any SaaS domain as verified.
+
 ## Shared multi-tenant SaaS — required implementation
 
 - A separately authenticated **platform control plane** provisions tenant ID, verified domains, membership, role bindings, branding and merchant secret references.

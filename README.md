@@ -70,7 +70,7 @@ The audit reports remaining Jnapanam-specific references, images, app links and 
 - `apps/mobile`: Expo/Android app
 - `packages/platform-core`: arena configuration, three deployment choices, full entitlements and evidence-based release checklist
 - `demo`: browser-only, synthetic sales preview
-- `scripts`: local draft generation, dedicated environment output and white-label audit
+- `scripts`: local draft generation, dedicated tenant provisioning, environment output and white-label audit
 
 **Next development gates:** complete multi-tenant isolation on the full imported Jnapanam modules, provision per-arena environments/merchant settings, audit legacy-brand assets, and perform booking/payment/refund/invoice UAT. Do not enable SaaS by bypassing the safety filter.
 
@@ -86,7 +86,7 @@ The source-reviewed [PlayNexa technical handover](docs/architecture-kt/README.md
 [guarded Flyway migration procedure](docs/architecture-kt/MIGRATION_RUNBOOK.md),
 [API status/log and security standards](docs/architecture-kt/STATUS_LOGS_SECURITY.md),
 [page-by-page web/mobile route inventory](docs/architecture-kt/SCREEN_ROUTE_INVENTORY.md)
-and [maintenance/UAT/KT guidance](docs/architecture-kt/OPERATIONS_KT_UAT.md).
+and [maintenance/UAT/KT guidance](docs/architecture-kt/OPERATIONS_KT_UAT.md), and the [dedicated tenant provisioning runbook](docs/architecture-kt/DEDICATED_TENANT_PROVISIONING.md).
 
 The Node static audit inventories customer/admin/mobile source files; **it does not claim every route has passed visual or role-based browser/device UAT**. The imported full-featured booking system still requires a real staging database, sandbox payments/refunds, operator workflows and cross-tenant isolation before selling multi-tenant SaaS.
 
