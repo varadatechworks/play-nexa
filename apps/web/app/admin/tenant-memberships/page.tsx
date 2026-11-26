@@ -46,7 +46,10 @@ export default function TenantMembershipsPage() {
       const result = await api<Member[]>("/api/v1/admin/tenant-memberships");
       setMembers(Array.isArray(result) ? result : []);
     } catch (err) {
-      setError(message(err, "Unable to load arena members. Confirm that tenant context is enabled and you are an active OWNER or ADMIN."));
+      const detail = message(err, "Unable to load arena members.");
+      setError(detail.toLowerCase().includes("tenant administrator")
+        ? "Tenant Members requires a provisioned tenant context and an ACTIVE OWNER or ADMIN membership. Legacy installations can continue using Users."
+        : detail);
     } finally {
       setLoading(false);
     }
