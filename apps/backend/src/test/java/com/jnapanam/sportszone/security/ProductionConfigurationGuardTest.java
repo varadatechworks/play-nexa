@@ -73,6 +73,15 @@ class ProductionConfigurationGuardTest {
         assertTrue(message.contains("Shared SaaS"));
     }
 
+    @Test void tenantContextRequiresAConfiguredTenantIdAndSharedSaasReadyMustStayFalse() {
+        assertThatThrownBy(()->new ProductionConfigurationGuard(secureProduction()
+                .withProperty("PLAYNEXA_TENANT_CONTEXT_ENABLED","true")).validate())
+                .hasMessageContaining("PLAYNEXA_TENANT_ID is required");
+        assertThatThrownBy(()->new ProductionConfigurationGuard(secureProduction()
+                .withProperty("PLAYNEXA_SHARED_SAAS_READY","true")).validate())
+                .hasMessageContaining("PLAYNEXA_SHARED_SAAS_READY must remain false");
+    }
+
     @Test void rejectsSharedModeAndHttpOrLocalhostCors() {
         var environment=secureProduction()
                 .withProperty("PLAYNEXA_HOSTING_MODE","saas")
