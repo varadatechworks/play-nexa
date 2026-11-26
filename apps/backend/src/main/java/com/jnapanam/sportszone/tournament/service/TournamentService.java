@@ -15,6 +15,8 @@ import com.jnapanam.sportszone.notification.service.NotificationService;
 import com.jnapanam.sportszone.tournament.dto.*;
 import com.jnapanam.sportszone.tournament.model.*;
 import com.jnapanam.sportszone.tournament.repository.*;
+import com.jnapanam.sportszone.tenancy.TenantContext;
+import com.jnapanam.sportszone.tenancy.TenantContextHolder;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,12 +40,13 @@ public class TournamentService {
     private final SportRepository sports;
     private final FacilityRepository facilities;
     private final NotificationService notifications;
+    private final JdbcTemplate jdbc;
     private final long paymentMinutes;
 
     public TournamentService(OrganizerApplicationRepository applications, TournamentRepository tournaments,
             TournamentTeamRepository teams, TournamentTeamMemberRepository members,
             TournamentFixtureRepository fixtures, UserRepository users, RoleRepository roles,
-            SportRepository sports, FacilityRepository facilities, NotificationService notifications,
+            SportRepository sports, FacilityRepository facilities, NotificationService notifications, JdbcTemplate jdbc,
             @Value("${app.payment.pending-minutes:15}") long paymentMinutes) {
         this.applications = applications;
         this.tournaments = tournaments;
@@ -54,6 +58,7 @@ public class TournamentService {
         this.sports = sports;
         this.facilities = facilities;
         this.notifications = notifications;
+        this.jdbc = jdbc;
         this.paymentMinutes = paymentMinutes;
     }
 
@@ -75,6 +80,19 @@ public class TournamentService {
     @Transactional(readOnly = true)
     public List<OrganizerOptionResponse> approvedOrganizers() {
         Map<UUID, OrganizerOptionResponse> options = new LinkedHashMap<>();
+        TenantContext tenant = TenantContextHolder.get();
+        if (tenant != null) {
+            List<UUID> memberIds = jdbc.query("""
+                    select user_id from playnexa_tenant_memberships
+                    where tenant_id=? and membership_status='ACTIVE'
+                      and role in ('ORGANIZER','OWNER','ADMIN')
+                    order by created_at
+                    """, (rs, row) -> rs.getObject("user_id", UUID.class), tenant.tenantId());
+            for (User user : users.findAllById(memberIds)) {
+                options.put(user.getId(), new OrganizerOptionResponse(user.getId(), user.getFullName(), "TENANT_ORGANIZER"));
+            }
+            return options.values().stream().toList();
+        }
         for (OrganizerApplication application : applications.findByStatusOrderByAppliedAtDesc(OrganizerStatus.APPROVED)) {
             User user = application.getUser();
             options.put(user.getId(), new OrganizerOptionResponse(user.getId(), user.getFullName(), "APPROVED_ORGANIZER"));
@@ -100,13 +118,36 @@ public class TournamentService {
         if (application.getStatus() != OrganizerStatus.PENDING) throw new ConflictException("Application is already reviewed");
         application.review(request.status(), request.reviewNote());
         User applicant = application.getUser();
+        TenantContext tenant = TenantContextHolder.get();
         if (request.status() == OrganizerStatus.APPROVED) {
-            var organizerRole = roles.findByName(RoleName.ORGANIZER)
-                    .orElseThrow(() -> new ConflictException("Organizer role is not configured"));
-            applicant.getRoles().add(organizerRole);
+            if (tenant != null) {
+                jdbc.update("""
+                        insert into playnexa_tenant_memberships
+                            (id, tenant_id, user_id, role, membership_status, invited_by)
+                        values (?, ?, ?, 'ORGANIZER', 'ACTIVE', NULL)
+                        on conflict (tenant_id, user_id) do update
+                        set role = case
+                                when playnexa_tenant_memberships.role in ('OWNER','ADMIN')
+                                then playnexa_tenant_memberships.role
+                                else 'ORGANIZER'
+                            end,
+                            membership_status='ACTIVE', updated_at=now()
+                        """, UUID.randomUUID(), tenant.tenantId(), applicant.getId());
+            } else {
+                var organizerRole = roles.findByName(RoleName.ORGANIZER)
+                        .orElseThrow(() -> new ConflictException("Organizer role is not configured"));
+                applicant.getRoles().add(organizerRole);
+            }
             notifications.lifecycle(applicant.getId(), "ORGANIZER_APPROVED", "Organizer access approved",
                     "Your organizer application has been approved. You can now create and manage tournaments.");
         } else {
+            if (tenant != null) {
+                jdbc.update("""
+                        update playnexa_tenant_memberships
+                        set membership_status='REVOKED', updated_at=now()
+                        where tenant_id=? and user_id=? and role='ORGANIZER'
+                        """, tenant.tenantId(), applicant.getId());
+            }
             notifications.lifecycle(applicant.getId(), "ORGANIZER_REJECTED", "Organizer application reviewed",
                     "Your organizer application was not approved. " + cleanReviewNote(request.reviewNote()));
         }
@@ -121,11 +162,17 @@ public class TournamentService {
     @Transactional
     public TournamentResponse createByOrganizer(UUID organizerId, TournamentRequest request) {
         User organizer = user(organizerId);
-        if (!organizer.getRoles().stream().anyMatch(role -> role.getName() == RoleName.ORGANIZER)) {
-            throw new ConflictException("Organizer access is required");
-        }
-        if (!applications.existsByUserIdAndStatus(organizerId, OrganizerStatus.APPROVED)) {
-            throw new ConflictException("Organizer approval is required");
+        if (TenantContextHolder.get() != null) {
+            if (!hasTenantRole(organizerId, "ORGANIZER")) {
+                throw new ConflictException("Organizer membership is required in this arena");
+            }
+        } else {
+            if (!organizer.getRoles().stream().anyMatch(role -> role.getName() == RoleName.ORGANIZER)) {
+                throw new ConflictException("Organizer access is required");
+            }
+            if (!applications.existsByUserIdAndStatus(organizerId, OrganizerStatus.APPROVED)) {
+                throw new ConflictException("Organizer approval is required");
+            }
         }
         return createFor(organizerId, request);
     }
@@ -289,8 +336,25 @@ public class TournamentService {
     private User user(UUID id) { return users.findById(id).orElseThrow(() -> new NotFoundException("User not found")); }
 
     private boolean eligibleOrganizer(User user) {
+        if (TenantContextHolder.get() != null) {
+            return hasTenantRole(user.getId(), "ORGANIZER", "OWNER", "ADMIN");
+        }
         return applications.existsByUserIdAndStatus(user.getId(), OrganizerStatus.APPROVED)
                 || user.getRoles().stream().anyMatch(role -> role.getName() == RoleName.ADMIN || role.getName() == RoleName.SUPER_ADMIN);
+    }
+
+    private boolean hasTenantRole(UUID userId, String... allowedRoles) {
+        TenantContext tenant = TenantContextHolder.get();
+        if (tenant == null || allowedRoles == null || allowedRoles.length == 0) return false;
+        String placeholders = String.join(",", java.util.Collections.nCopies(allowedRoles.length, "?"));
+        Object[] parameters = new Object[allowedRoles.length + 2];
+        parameters[0] = tenant.tenantId();
+        parameters[1] = userId;
+        System.arraycopy(allowedRoles, 0, parameters, 2, allowedRoles.length);
+        Integer count = jdbc.queryForObject("select count(*) from playnexa_tenant_memberships "
+                + "where tenant_id=? and user_id=? and membership_status='ACTIVE' and role in ("
+                + placeholders + ")", Integer.class, parameters);
+        return count != null && count > 0;
     }
 
     private static String cleanReviewNote(String value) {
