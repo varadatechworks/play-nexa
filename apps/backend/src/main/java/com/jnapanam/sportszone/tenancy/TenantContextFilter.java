@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Optional;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -26,12 +27,13 @@ public class TenantContextFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain chain) throws ServletException, IOException {
-        if (!Boolean.parseBoolean(environment.getProperty("PLAYNEXA_TENANT_CONTEXT_ENABLED", "false"))) {
+        if (request.getRequestURI().equals("/actuator/health") || request.getRequestURI().startsWith("/actuator/health/")
+                || !Boolean.parseBoolean(environment.getProperty("PLAYNEXA_TENANT_CONTEXT_ENABLED", "false"))) {
             chain.doFilter(request, response);
             return;
         }
 
-        String mode = environment.getProperty("PLAYNEXA_HOSTING_MODE", "dedicated").trim().toLowerCase();
+        String mode = environment.getProperty("PLAYNEXA_HOSTING_MODE", "dedicated").trim().toLowerCase(Locale.ROOT);
         Optional<TenantContext> resolved;
         if (mode.equals("saas") || mode.equals("multi-tenant-saas")) {
             if (!Boolean.parseBoolean(environment.getProperty("PLAYNEXA_SHARED_SAAS_READY", "false"))) {
