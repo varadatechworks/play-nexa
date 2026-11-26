@@ -74,8 +74,9 @@ class CommerceCheckoutIntegrationTest {
     @Test
     void checkoutRollsBackWhenCartQuantityExceedsAvailableStock() throws Exception {
         Fixture fixture = fixture(1, 2, 10_000, 18.0);
+        jdbc.update("update commerce_shop_settings set pay_at_facility_enabled=true where singleton_id=true");
 
-        assertThatThrownBy(() -> commerce.checkout(fixture.userId(), pickupRequest("ONLINE")))
+        assertThatThrownBy(() -> commerce.checkout(fixture.userId(), pickupRequest("PAY_AT_PICKUP")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("only 1 item");
 
