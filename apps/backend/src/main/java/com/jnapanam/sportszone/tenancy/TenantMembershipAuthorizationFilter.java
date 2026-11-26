@@ -35,6 +35,7 @@ public class TenantMembershipAuthorizationFilter extends OncePerRequestFilter {
                 || "HEAD".equalsIgnoreCase(request.getMethod());
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())
                 || path.startsWith("/api/v1/auth/") || path.startsWith("/api/v1/public/")
+                || path.equals("/api/v1/tenant-memberships/me/accept")
                 || path.startsWith("/actuator/")
                 || (safeRead && (path.equals("/api/v1/commerce/settings")
                         || path.equals("/api/v1/commerce/categories")
