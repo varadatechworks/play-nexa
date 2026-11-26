@@ -15,6 +15,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -48,6 +49,16 @@ class TenantMembershipServiceTest {
     void tearDown() {
         TenantContextHolder.clear();
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void membershipListIsScopedToTheCurrentTenant() {
+        TenantMembershipResponse row = new TenantMembershipResponse(targetId, "Arena Operator",
+                "operator@example.test", "OPERATOR", "ACTIVE");
+        when(jdbc.query(anyString(), any(RowMapper.class), eq(tenantId))).thenReturn(List.of(row));
+
+        assertThat(service.list(actorId)).containsExactly(row);
+        verify(jdbc).query(contains("where m.tenant_id=?"), any(RowMapper.class), eq(tenantId));
     }
 
     @Test
