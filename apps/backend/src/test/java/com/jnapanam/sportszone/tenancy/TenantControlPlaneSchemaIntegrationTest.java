@@ -52,7 +52,12 @@ class TenantControlPlaneSchemaIntegrationTest {
     void invalidSlugAndUnsupportedHostingModeAreRejected() {
         assertThatThrownBy(() -> jdbc.update(
                 "insert into playnexa_tenants(id,slug,display_name,hosting_mode) values(?,?,?,?)",
-                UUID.randomUUID(), "Bad Slug", "Invalid", "UNSUPPORTED_MODE"))
+                UUID.randomUUID(), "Bad Slug", "Invalid slug", "MULTI_TENANT_SAAS"))
+                .isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> jdbc.update(
+                "insert into playnexa_tenants(id,slug,display_name,hosting_mode) values(?,?,?,?)",
+                UUID.randomUUID(), "unsupported-" + UUID.randomUUID().toString().substring(0, 8),
+                "Invalid hosting mode", "UNSUPPORTED_MODE"))
                 .isInstanceOf(RuntimeException.class);
     }
 
