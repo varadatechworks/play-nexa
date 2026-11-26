@@ -9,6 +9,7 @@
 - Customer users are enrolled as CUSTOMER in a tenant on first authenticated visit; privileged roles require an explicit ACTIVE tenant membership. SUPER_ADMIN remains a platform-level role.
 - Operator assignment, front-desk and equipment-inventory authorization consults ACTIVE tenant membership when tenant context is present. A global ADMIN role cannot bypass another tenant's operator facility scope; platform SUPER_ADMIN retains the platform-wide bypass.
 - Organizer standings updates are limited to tournaments owned by the authenticated organizer; tenant ADMIN/SUPER_ADMIN roles retain broader administration rights.
+- Tournament organizer application approval, organizer creation and the approved-organizer picker use ACTIVE tenant memberships when tenant context is present. Global ORGANIZER/ADMIN roles cannot grant tournament permissions in another tenant.
 - Context is cleared in a finally block at request completion. Health checks do not require tenant context.
 - The context filter is opt-in through `PLAYNEXA_TENANT_CONTEXT_ENABLED=false` by default. Use `DEDICATED_TENANT_PROVISIONING.md` to create the registry row and first OWNER membership for dedicated deployments before enabling tenant context.
 - `TenantContextFilter` returns 503 for shared SaaS using a hard-coded code-level certification constant. `PLAYNEXA_SHARED_SAAS_READY=true` alone cannot open the gate. `ProductionConfigurationGuard` also rejects shared SaaS in production.
