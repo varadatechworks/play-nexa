@@ -49,11 +49,29 @@ class TenantControlPlaneSchemaIntegrationTest {
     }
 
     @Test
-    void invalidSlugAndDedicatedHostingModeAreRejected() {
+    void invalidSlugAndUnsupportedHostingModeAreRejected() {
         assertThatThrownBy(() -> jdbc.update(
                 "insert into playnexa_tenants(id,slug,display_name,hosting_mode) values(?,?,?,?)",
-                UUID.randomUUID(), "Bad Slug", "Invalid", "CUSTOMER_HOSTED"))
+                UUID.randomUUID(), "Bad Slug", "Invalid", "UNSUPPORTED_MODE"))
                 .isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
+    void allThreeHostingModesAndCustomerMembershipRoleAreSupported() {
+        UUID customerHosted = UUID.randomUUID();
+        UUID managedSingleTenant = UUID.randomUUID();
+        jdbc.update("insert into playnexa_tenants(id,slug,display_name,hosting_mode) values(?,?,?,?)",
+                customerHosted, "customer-" + UUID.randomUUID().toString().substring(0, 8), "Customer hosted", "CUSTOMER_HOSTED");
+        jdbc.update("insert into playnexa_tenants(id,slug,display_name,hosting_mode) values(?,?,?,?)",
+                managedSingleTenant, "managed-" + UUID.randomUUID().toString().substring(0, 8), "Managed single tenant", "PLAYNEXA_MANAGED_SINGLE_TENANT");
+        String roleConstraint = jdbc.queryForObject(
+                "select pg_get_constraintdef(oid) from pg_constraint where conname='playnexa_tenant_memberships_role_check'",
+                String.class);
+        assertThat(roleConstraint).contains("CUSTOMER");
+        assertThat(jdbc.queryForObject("select hosting_mode from playnexa_tenants where id=?", String.class, customerHosted))
+                .isEqualTo("CUSTOMER_HOSTED");
+        assertThat(jdbc.queryForObject("select hosting_mode from playnexa_tenants where id=?", String.class, managedSingleTenant))
+                .isEqualTo("PLAYNEXA_MANAGED_SINGLE_TENANT");
     }
 
     private UUID createTenant(String slug) {
