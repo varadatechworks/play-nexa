@@ -4,6 +4,8 @@ import com.jnapanam.sportszone.common.exception.MfaChallengeRequiredException;
 import com.jnapanam.sportszone.common.exception.UnauthorizedException;
 import com.jnapanam.sportszone.identity.model.RoleName;
 import com.jnapanam.sportszone.identity.model.User;
+import com.jnapanam.sportszone.tenancy.TenantContext;
+import com.jnapanam.sportszone.tenancy.TenantContextHolder;
 import com.jnapanam.sportszone.notification.model.Notification;
 import com.jnapanam.sportszone.notification.model.NotificationChannel;
 import com.jnapanam.sportszone.notification.provider.NotificationProviderRegistry;
@@ -46,8 +48,15 @@ public class MfaService {
     }
 
     public boolean privileged(User user) {
-        return user.getRoles().stream().anyMatch(role ->
-                role.getName() == RoleName.ADMIN || role.getName() == RoleName.SUPER_ADMIN);
+        if (user.getRoles().stream().anyMatch(role -> role.getName() == RoleName.SUPER_ADMIN)) return true;
+        TenantContext tenant = TenantContextHolder.get();
+        if (tenant != null) {
+            Integer count = jdbc.queryForObject("select count(*) from playnexa_tenant_memberships "
+                            + "where tenant_id=? and user_id=? and membership_status='ACTIVE' and role in ('OWNER','ADMIN')",
+                    Integer.class, tenant.tenantId(), user.getId());
+            return count != null && count > 0;
+        }
+        return user.getRoles().stream().anyMatch(role -> role.getName() == RoleName.ADMIN);
     }
 
     @Transactional(noRollbackFor = MfaChallengeRequiredException.class)
