@@ -2,6 +2,7 @@ package com.jnapanam.sportszone.commerce.service;
 
 import static com.jnapanam.sportszone.commerce.dto.CommerceDtos.*;
 import com.jnapanam.sportszone.notification.service.NotificationService;
+import com.jnapanam.sportszone.common.exception.ConflictException;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -259,14 +260,18 @@ public class CommerceService {
     public Order cancel(UUID user, UUID id, String reason) {
         Order order = order(user, id);
         if (!Set.of("PLACED", "CONFIRMED").contains(order.status())) {
-            throw new IllegalArgumentException("This order cannot be cancelled");
+            throw new ConflictException("This order cannot be cancelled");
         }
-        jdbc.update("update commerce_orders set status='CANCELLED',cancellation_reason=?,updated_at=now() where id=?",
-                reason, id);
+        int changed = jdbc.update("update commerce_orders set status='CANCELLED',cancellation_reason=?,updated_at=now() "
+                        + "where id=? and user_id=? and status in ('PLACED','CONFIRMED') "
+                        + "and coalesce(payment_status,'PENDING')<>'PAID'",
+                reason, id, user);
+        if (changed != 1) throw new ConflictException("Order status changed. Refresh before trying again.");
+        restoreShopOrderLoyalty(user, id, order.orderNumber());
         jdbc.queryForList("select variant_id,quantity from commerce_order_items where order_id=?", id)
                 .forEach(row -> {
                     UUID variant = (UUID) row.get("variant_id");
-                    int quantity = (Integer) row.get("quantity");
+                    int quantity = ((Number) row.get("quantity")).intValue();
                     jdbc.update("update commerce_variants set stock_quantity=stock_quantity+? where id=?",
                             quantity, variant);
                     jdbc.update("insert into commerce_stock_movements(variant_id,quantity_delta,reason,reference_id,actor_id) "
@@ -275,6 +280,19 @@ public class CommerceService {
                 });
         notifications.lifecycle(user, "COMMERCE", "Shop order cancelled", "Order " + order.orderNumber() + " was cancelled.");
         return order(user, id);
+    }
+
+    private void restoreShopOrderLoyalty(UUID userId, UUID orderId, String orderNumber) {
+        Long points = jdbc.queryForObject("select coalesce(loyalty_points_used,0) from commerce_orders where id=? and user_id=?",
+                Long.class, orderId, userId);
+        if (points == null || points <= 0) return;
+        int changed = jdbc.update("update loyalty_wallets set points_balance=points_balance+?,"
+                + "lifetime_redeemed=greatest(0,lifetime_redeemed-?),updated_at=now(),version=version+1 where user_id=?",
+                points, points, userId);
+        if (changed != 1) throw new IllegalStateException("Unable to restore shop loyalty points for cancelled order");
+        jdbc.update("insert into loyalty_transactions(id,user_id,transaction_type,points,description,created_at) "
+                + "values(?,?,'REVERSAL',?,?,now())", UUID.randomUUID(), userId, points,
+                "Restored after cancelling shop order " + orderNumber);
     }
 
     private boolean blank(String value) {
