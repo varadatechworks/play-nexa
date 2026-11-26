@@ -2,7 +2,7 @@
 
 ## Source revision reviewed
 
-Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merged PR #91 and PRs #97–#112 plus #114. PR #102 was superseded by #104 and was not ported separately. Open PRs #113 and #115 are not ported; #114 provides the merged slot-level front-desk scope, while #115 equipment inventory scope awaits merge. Jnapanam remains the reference product; PlayNexa keeps its own branding, hosting model, tenant control-plane and deployment configuration.
+Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merged PR #91 and PRs #97–#112 plus #114 and #115. PR #102 was superseded by #104 and was not ported separately. PR #113 remains open and is superseded by merged PR #114 for the front-desk assignment checks; it is not copied independently. Jnapanam remains the reference product; PlayNexa keeps its own branding, hosting model, tenant control-plane and deployment configuration.
 
 ## Ported to PlayNexa in this branch
 
@@ -25,6 +25,7 @@ Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merg
 | #111 | Venue self-check-in uses venue-local date/time, a pessimistic booking-number lock, and accepts only PAID or NOT_REQUIRED bookings. PlayNexa keeps configurable `ARENA_TIME_ZONE` (default Asia/Kolkata) and `ARENA_VENUE_CODE` (default PLAYNEXA) rather than copying Jnapanam's hard-coded venue identity. |
 | #112 | Ported the self-check-in regression suite, adapted to PlayNexa booking references, including owner privacy, payment state, booking date and duplicate check-in guards. |
 | #114 | Operator front-desk walk-ins are checked against the assigned slot's facility; emergency closure is checked against the assigned facility. Added service-level tests for slot and facility scope. |
+| #115 | Equipment inventory reads are restricted to the operator's assigned facilities; writes require a selected assigned facility. Administrators retain global inventory access. Added tests for scoped reads, missing/unassigned facility writes, empty assignments and administrator access. |
 
 ## Implementation notes
 
@@ -34,11 +35,12 @@ Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merg
 - The admin payment console now distinguishes a refund to the customer from a retained charge; a retained charge is not represented as money returned to the customer.
 - Jnapanam branding, domains, credentials, app identifiers and production environment values were not copied.
 - Tenant membership role `OPERATOR` maps to PlayNexa's actual `ROLE_OPERATIONS`; `ORGANIZER` is also tenant-scoped so global JWT roles cannot grant organizer access across arenas.
+- The equipment inventory controller derives operator facility access from server-side assignments; an operator cannot use a client-supplied facility ID to read or write outside those assignments.
 - PlayNexa's marketplace remains deferred.
 
 ## Verification still required
 
-- Run the full backend Maven test suite, web contract tests/build and Expo/mobile contract tests on the PlayNexa branch.
+- Run the full backend Maven test suite, web contract tests/build and Expo/mobile contract tests on the PlayNexa branch, including the new #115 inventory scope tests and deterministic check-in window tests.
 - Rehearse V63–V66 on a disposable PostgreSQL database before production migration.
 - Run browser and Android UAT for payment/refund, Shop cancellation/returns, Promotions, training withdrawal, and tournament registration.
 - Reconcile tenant-aware data-plane authorization and hostile cross-tenant tests before enabling shared SaaS. The tenant registry/control-plane schema alone is not a tenant isolation boundary.
@@ -46,4 +48,4 @@ Reviewed the latest Jnapanam mainline changes through 2026-11-27, including merg
 
 ## Tenant-isolation gate
 
-Shared SaaS remains disabled. Before opening it, implement transaction-scoped tenant context, database-enforced row policies or equivalent tenant-boundary controls, composite tenant relationships, and hostile cross-tenant read/write/delete tests across every tenant-owned table and asynchronous path. PostgreSQL row-level security must be tested using the actual least-privileged application role; table owners and BYPASSRLS roles can bypass ordinary policies, and pooled connections require transaction-local tenant context. See the PostgreSQL [row security documentation](https://www.postgresql.org/docs/current/ddl-rowsecurity.html).
+Shared SaaS remains disabled by a hard-coded code-level certification gate; setting `PLAYNEXA_SHARED_SAAS_READY=true` alone cannot enable it. Before opening it, implement transaction-scoped tenant context, database-enforced row policies or equivalent tenant-boundary controls, composite tenant relationships, and hostile cross-tenant read/write/delete tests across every tenant-owned table and asynchronous path. PostgreSQL row-level security must be tested using the actual least-privileged application role; table owners and BYPASSRLS roles can bypass ordinary policies, and pooled connections require transaction-local tenant context. See the PostgreSQL [row security documentation](https://www.postgresql.org/docs/current/ddl-rowsecurity.html).
