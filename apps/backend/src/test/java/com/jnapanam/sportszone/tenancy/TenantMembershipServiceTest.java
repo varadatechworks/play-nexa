@@ -7,9 +7,12 @@ import static org.mockito.Mockito.*;
 
 import com.jnapanam.sportszone.common.exception.ConflictException;
 import com.jnapanam.sportszone.identity.model.User;
+import com.jnapanam.sportszone.identity.model.Role;
+import com.jnapanam.sportszone.identity.model.RoleName;
 import com.jnapanam.sportszone.identity.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,6 +67,58 @@ class TenantMembershipServiceTest {
 
         assertThat(service.list(actorId)).containsExactly(row);
         verify(jdbc).query(contains("where m.tenant_id=?"), any(RowMapper.class), eq(tenantId));
+    }
+
+    @Test
+    void currentReturnsOnlyTheAuthenticatedUsersMembership() {
+        authenticateTarget();
+        TenantMembershipSelfResponse row = new TenantMembershipSelfResponse(tenantId, "OPERATOR", "ACTIVE");
+        when(jdbc.query(anyString(), any(RowMapper.class), eq(tenantId), eq(targetId))).thenReturn(List.of(row));
+
+        assertThat(service.current(targetId)).isEqualTo(row);
+        verifyNoInteractions(users);
+    }
+
+    @Test
+    void currentAutoEnrollsAnActiveGlobalCustomerWithoutExistingMembership() {
+        authenticateTarget();
+        Role customerRole = mock(Role.class);
+        when(customerRole.getName()).thenReturn(RoleName.CUSTOMER);
+        when(target.getRoles()).thenReturn(Set.of(customerRole));
+        when(jdbc.query(anyString(), any(RowMapper.class), eq(tenantId), eq(targetId)))
+                .thenReturn(List.of(), List.of(new TenantMembershipSelfResponse(tenantId, "CUSTOMER", "ACTIVE")));
+        when(jdbc.update(anyString(), any(Object[].class))).thenReturn(1);
+
+        TenantMembershipSelfResponse current = service.current(targetId);
+
+        assertThat(current.role()).isEqualTo("CUSTOMER");
+        assertThat(current.membershipStatus()).isEqualTo("ACTIVE");
+        verify(jdbc).update(contains("values (gen_random_uuid(), ?, ?, 'CUSTOMER', 'ACTIVE'"), any(Object[].class));
+    }
+
+    @Test
+    void currentDoesNotInheritGlobalAdminWithoutTenantMembership() {
+        authenticateTarget();
+        Role globalAdmin = mock(Role.class);
+        when(globalAdmin.getName()).thenReturn(RoleName.ADMIN);
+        when(target.getRoles()).thenReturn(Set.of(globalAdmin));
+        when(jdbc.query(anyString(), any(RowMapper.class), eq(tenantId), eq(targetId))).thenReturn(List.of());
+
+        TenantMembershipSelfResponse current = service.current(targetId);
+
+        assertThat(current.role()).isNull();
+        assertThat(current.membershipStatus()).isEqualTo("NONE");
+        verify(jdbc, never()).update(anyString(), any(Object[].class));
+    }
+
+    @Test
+    void currentPreservesInvitedStatusUntilTheUserAccepts() {
+        authenticateTarget();
+        TenantMembershipSelfResponse invited = new TenantMembershipSelfResponse(tenantId, "ADMIN", "INVITED");
+        when(jdbc.query(anyString(), any(RowMapper.class), eq(tenantId), eq(targetId))).thenReturn(List.of(invited));
+
+        assertThat(service.current(targetId)).isEqualTo(invited);
+        verifyNoInteractions(users);
     }
 
     @Test
