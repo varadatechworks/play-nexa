@@ -1,5 +1,7 @@
 package com.jnapanam.sportszone.security;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 
