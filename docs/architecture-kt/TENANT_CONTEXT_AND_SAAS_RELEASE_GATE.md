@@ -32,3 +32,8 @@ This foundation is **not** tenant data-plane isolation and does not authorize sh
 
 - Customer-hosted and PlayNexa-managed single-tenant modes are permitted by configuration, but require a provisioned tenant ID and verified deployment-specific setup before enabling tenant context.
 - Shared multi-tenant SaaS remains **disabled**. The hard-coded 503 safety gate and production configuration guard must not be changed until every item above is verified in CI and a hostile cross-tenant review is complete.
+
+
+## Tenant membership administration
+
+With tenant context enabled, an active OWNER/ADMIN can list, add/update, suspend and revoke tenant memberships through `GET /api/v1/admin/tenant-memberships`, `PUT /api/v1/admin/tenant-memberships/{userId}` and `DELETE /api/v1/admin/tenant-memberships/{userId}`. OWNER is bootstrap-only and cannot be changed or revoked through this API. Global `/api/v1/admin/users` management is restricted to platform SUPER_ADMIN while tenant context is active, preventing tenant administrators from changing the platform-wide user directory.
