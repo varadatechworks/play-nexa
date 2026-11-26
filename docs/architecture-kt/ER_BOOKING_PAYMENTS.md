@@ -104,7 +104,11 @@ erDiagram
     UUID payment_order_id FK
     VARCHAR provider_refund_id UK
     BIGINT amount_paise
+    BIGINT deduction_paise
+    VARCHAR deduction_description
     VARCHAR status
+    TIMESTAMPTZ requested_at
+    TIMESTAMPTZ processed_at
   }
   PAYMENT_WEBHOOK_EVENTS {
     UUID id PK
