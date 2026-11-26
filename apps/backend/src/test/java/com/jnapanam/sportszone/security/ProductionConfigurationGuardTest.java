@@ -54,6 +54,12 @@ class ProductionConfigurationGuardTest {
                 .withProperty("PLAYNEXA_HOSTING_MODE","playnexa-managed-single-tenant")).validate());
     }
 
+    @Test void rejectsThePlayNexaDevelopmentJwtSecretInProduction() {
+        assertThatThrownBy(()->new ProductionConfigurationGuard(secureProduction()
+                .withProperty("JWT_SECRET","UGxheU5leGEgRGV2ZWxvcG1lbnQgSldUIFNlY3JldCAyMDI2IQ==")).validate())
+                .hasMessageContaining("JWT_SECRET must be a strong unique production signing key");
+    }
+
     @Test void rejectsMockPaymentsAndTestOtpAndLongLivedTokens() {
         var environment=secureProduction()
                 .withProperty("app.payment.provider","mock")
