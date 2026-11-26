@@ -100,6 +100,11 @@ public class TenantMembershipService {
     @Transactional
     public TenantMembershipSelfResponse current(UUID userId) {
         TenantContext tenant = TenantContextHolder.get();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || !userId.toString().equals(authentication.getName())) {
+            throw new AccessDeniedException("You can only view your own tenant membership");
+        }
         if (tenant == null) return null;
         List<TenantMembershipSelfResponse> memberships = jdbc.query("""
                 select tenant_id, role, membership_status
