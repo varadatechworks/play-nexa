@@ -126,6 +126,48 @@ class TenantMembershipAuthorizationFilterTest {
     }
 
     @Test
+    void tenantAdminCannotUseGlobalUserManagementEndpoints() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                userId.toString(), null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+        var response = new MockHttpServletResponse();
+
+        filter.doFilter(new MockHttpServletRequest("GET", "/api/v1/admin/users"),
+                response, new MockFilterChain());
+
+        assertThat(response.getStatus()).isEqualTo(403);
+        assertThat(response.getContentAsString()).contains("PLATFORM_ADMIN_REQUIRED");
+        verifyNoInteractions(jdbc);
+    }
+
+    @Test
+    void tenantAdminCanUseTenantMembershipManagementEndpoint() throws Exception {
+        when(jdbc.queryForObject(anyString(), eq(String.class), eq(tenantId), eq(userId))).thenReturn("ADMIN");
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                userId.toString(), null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+        var response = new MockHttpServletResponse();
+
+        filter.doFilter(new MockHttpServletRequest("GET", "/api/v1/admin/tenant-memberships"),
+                response, new MockFilterChain());
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        assertThat(SecurityContextHolder.getContext().getAuthentication().getAuthorities())
+                .extracting("authority").contains("ROLE_ADMIN");
+    }
+
+    @Test
+    void platformSuperAdminCanUseGlobalUserManagementEndpoints() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                userId.toString(), null, List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"))));
+        var response = new MockHttpServletResponse();
+
+        filter.doFilter(new MockHttpServletRequest("GET", "/api/v1/admin/users"),
+                response, new MockFilterChain());
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        verifyNoInteractions(jdbc);
+    }
+
+    @Test
     void platformSuperAdminCanManageTenantWithoutARegularMembership() throws Exception {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 userId.toString(), null, List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"))));
