@@ -2,7 +2,7 @@
 
 ## Source revision reviewed
 
-Reviewed the latest Jnapanam mainline changes through 2026-11-26, including merged PRs #97–#110. PR #102 was superseded by #104 and was not ported separately. Jnapanam remains the reference product; PlayNexa keeps its own branding, hosting model, tenant control-plane and deployment configuration.
+Reviewed the latest Jnapanam mainline changes through 2026-11-26, including merged PR #91 and PRs #97–#110. PR #102 was superseded by #104 and was not ported separately. Jnapanam remains the reference product; PlayNexa keeps its own branding, hosting model, tenant control-plane and deployment configuration.
 
 ## Ported to PlayNexa in this branch
 
@@ -21,6 +21,8 @@ Reviewed the latest Jnapanam mainline changes through 2026-11-26, including merg
 | #108 | Training withdrawal invokes recurring-subscription cancellation once, removing a duplicate provider call. |
 | #109 | Training and tournament registration sheets scroll within the viewport and remain usable with the keyboard open. |
 | #110 | Added the responsive Promotions & Offers admin workspace for coupon/automatic offers, eligibility, limits, validity and discount configuration. |
+
+| #91 | Added the iOS `ios-uat` EAS/TestFlight build profile and PlayNexa-specific release runbook. The production iOS bundle ID is explicitly required; no Apple credentials, signed IPA or TestFlight upload are claimed. |
 
 ## Implementation notes
 
