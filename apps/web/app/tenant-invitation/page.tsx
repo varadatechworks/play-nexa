@@ -17,9 +17,9 @@ export default function TenantInvitationPage() {
       setBusy(true);
       setError("");
       await api<void>("/api/v1/tenant-memberships/me/accept", { method: "POST" });
-      const refreshed = await restoreSession();
-      setUser(refreshed);
       setAccepted(true);
+      const refreshed = await restoreSession().catch(() => null);
+      if (refreshed) setUser(refreshed);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setError("No invitation was found for this account on the current arena. Ask the arena administrator to check the email address.");
