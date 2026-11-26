@@ -50,6 +50,22 @@ class TenantContextFilterTest {
     }
 
     @Test
+    void sharedSaasCannotBeEnabledByEnvironmentFlagAlone() throws Exception {
+        TenantDomainResolver resolver = mock(TenantDomainResolver.class);
+        var env = new MockEnvironment().withProperty("PLAYNEXA_TENANT_CONTEXT_ENABLED", "true")
+                .withProperty("PLAYNEXA_HOSTING_MODE", "multi-tenant-saas")
+                .withProperty("PLAYNEXA_SHARED_SAAS_READY", "true");
+        var filter = new TenantContextFilter(env, resolver);
+        var response = new MockHttpServletResponse();
+
+        filter.doFilter(new MockHttpServletRequest("GET", "/api/v1/bookings"), response,
+                (req, res) -> fail("environment flag must not enable shared SaaS"));
+
+        assertThat(response.getStatus()).isEqualTo(503);
+        verifyNoInteractions(resolver);
+    }
+
+    @Test
     void healthChecksDoNotRequireTenantContext() throws Exception {
         TenantDomainResolver resolver = mock(TenantDomainResolver.class);
         var env = new MockEnvironment().withProperty("PLAYNEXA_TENANT_CONTEXT_ENABLED", "true")
