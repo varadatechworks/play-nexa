@@ -125,6 +125,17 @@ INSERT INTO playnexa_tenant_subscriptions (id, tenant_id, plan_code, subscriptio
 VALUES (gen_random_uuid(), :'tenant_id'::uuid, :'plan_code', 'ACTIVE', now())
 ON CONFLICT (tenant_id) DO NOTHING;
 
+SELECT EXISTS (
+    SELECT 1 FROM playnexa_tenant_subscriptions
+    WHERE tenant_id = :'tenant_id'::uuid
+      AND subscription_status IN ('TRIAL','ACTIVE')
+) AS subscription_usable \gset
+\if :subscription_usable
+\else
+    \echo 'Existing subscription is not TRIAL or ACTIVE; review billing before provisioning.'
+    \quit 3
+\endif
+
 INSERT INTO playnexa_tenant_memberships (id, tenant_id, user_id, role, membership_status, invited_by)
 VALUES (gen_random_uuid(), :'tenant_id'::uuid, :'owner_user_id'::uuid, 'OWNER', 'ACTIVE', NULL)
 ON CONFLICT (tenant_id, user_id) DO UPDATE
