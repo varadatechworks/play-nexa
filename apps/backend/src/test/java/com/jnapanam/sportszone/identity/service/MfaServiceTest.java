@@ -9,6 +9,8 @@ import com.jnapanam.sportszone.common.exception.UnauthorizedException;
 import com.jnapanam.sportszone.identity.model.Role;
 import com.jnapanam.sportszone.identity.model.RoleName;
 import com.jnapanam.sportszone.identity.model.User;
+import com.jnapanam.sportszone.tenancy.TenantContext;
+import com.jnapanam.sportszone.tenancy.TenantContextHolder;
 import com.jnapanam.sportszone.notification.model.Notification;
 import com.jnapanam.sportszone.notification.model.NotificationChannel;
 import com.jnapanam.sportszone.notification.provider.NotificationProvider;
@@ -17,6 +19,8 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,6 +36,7 @@ class MfaServiceTest {
 
     @BeforeEach
     void setUp() {
+        TenantContextHolder.clear();
         service = new MfaService(jdbc, encoder, registry, false, new org.springframework.mock.env.MockEnvironment());
         service.required = true;
         Role role = mock(Role.class);
@@ -103,6 +108,55 @@ class MfaServiceTest {
                         "challenge_expires_at", Timestamp.from(Instant.now().minusSeconds(5)))));
         assertThrows(UnauthorizedException.class, () -> service.verifyOrChallenge(admin, "123456"));
         verifyNoInteractions(mail);
+    }
+
+    @AfterEach
+    void clearTenantContext() {
+        TenantContextHolder.clear();
+    }
+
+    @Test
+    void activeTenantAdminMembershipRequiresMfaEvenWithoutGlobalAdminRole() {
+        UUID tenantId = UUID.randomUUID();
+        TenantContextHolder.set(new TenantContext(tenantId, "arena-one", "Arena One", "CUSTOMER_HOSTED"));
+        Role customerRole = mock(Role.class);
+        when(customerRole.getName()).thenReturn(RoleName.CUSTOMER);
+        User tenantAdmin = new User("Tenant Admin", "tenant-admin@example.com", null, "hash", customerRole);
+        when(jdbc.queryForObject(contains("playnexa_tenant_memberships"), eq(Integer.class),
+                eq(tenantId), eq(tenantAdmin.getId()))).thenReturn(1);
+
+        assertTrue(service.privileged(tenantAdmin));
+    }
+
+    @Test
+    void globalAdminDoesNotInheritAdminPrivilegeInsideTenantWithoutMembership() {
+        UUID tenantId = UUID.randomUUID();
+        TenantContextHolder.set(new TenantContext(tenantId, "arena-one", "Arena One", "CUSTOMER_HOSTED"));
+        Role adminRole = mock(Role.class);
+        when(adminRole.getName()).thenReturn(RoleName.ADMIN);
+        User globalAdmin = new User("Global Admin", "global-admin@example.com", null, "hash", adminRole);
+        when(jdbc.queryForObject(contains("playnexa_tenant_memberships"), eq(Integer.class),
+                eq(tenantId), eq(globalAdmin.getId()))).thenReturn(0);
+
+        assertFalse(service.privileged(globalAdmin));
+    }
+
+    @Test
+    void globalAdminRemainsPrivilegedWhenTenantContextIsDisabled() {
+        Role adminRole = mock(Role.class);
+        when(adminRole.getName()).thenReturn(RoleName.ADMIN);
+        User globalAdmin = new User("Global Admin", "global-admin@example.com", null, "hash", adminRole);
+
+        assertTrue(service.privileged(globalAdmin));
+        verifyNoInteractions(jdbc);
+    }
+
+    @Test
+    void platformSuperAdminRemainsPrivilegedAcrossTenantContexts() {
+        TenantContextHolder.set(new TenantContext(UUID.randomUUID(), "arena-one", "Arena One", "CUSTOMER_HOSTED"));
+
+        assertTrue(service.privileged(admin));
+        verifyNoInteractions(jdbc);
     }
 
     @Test
