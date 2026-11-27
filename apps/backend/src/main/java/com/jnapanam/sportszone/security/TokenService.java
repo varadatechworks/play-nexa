@@ -3,6 +3,7 @@ package com.jnapanam.sportszone.security;
 import com.jnapanam.sportszone.identity.dto.TokenResponse;
 import com.jnapanam.sportszone.identity.model.User;
 import java.nio.charset.StandardCharsets;
+import java.net.URI;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -12,18 +13,35 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 public class TokenService {
     private final JwtEncoder encoder;
     private final SecurityProperties properties;
+    @Value("${JWT_ISSUER:https://playnexa.invalid}")
+    private String issuer = "https://playnexa.invalid";
     public TokenService(JwtEncoder encoder, SecurityProperties properties) { this.encoder = encoder; this.properties = properties; }
+
+    @PostConstruct
+    void validateIssuer() {
+        try {
+            URI value = URI.create(issuer);
+            if (!"https".equalsIgnoreCase(value.getScheme()) || value.getHost() == null
+                    || value.getRawUserInfo() != null || value.getFragment() != null) {
+                throw new IllegalArgumentException("JWT_ISSUER must be an absolute HTTPS URL");
+            }
+        } catch (Exception ex) {
+            throw new IllegalStateException("JWT_ISSUER must be an absolute HTTPS URL", ex);
+        }
+    }
 
     public AccessToken createAccessToken(User user) {
         Instant now = Instant.now();
         Instant expiry = now.plus(properties.accessTokenMinutes(), ChronoUnit.MINUTES);
         var roles = user.getRoles().stream().map(r -> r.getName().name()).toList();
-        JwtClaimsSet claims = JwtClaimsSet.builder().issuer("jnapanam-sports-zone").issuedAt(now).expiresAt(expiry)
+        JwtClaimsSet claims = JwtClaimsSet.builder().issuer(issuer).issuedAt(now).expiresAt(expiry)
                 .subject(user.getId().toString()).claim("email", user.getEmail()).claim("name", user.getFullName()).claim("roles", roles).build();
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
         return new AccessToken(encoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue(), expiry);
