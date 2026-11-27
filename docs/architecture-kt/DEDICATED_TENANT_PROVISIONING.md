@@ -86,3 +86,17 @@ To undo a bootstrap before the arena has live data, use a separately reviewed te
 ## Shared SaaS release gate
 
 This script cannot create a SaaS tenant or open shared hosting. The hard-coded code-level SaaS block remains in TenantContextFilter. Shared SaaS still requires tenant IDs and database-enforced isolation on all tenant-owned tables, transaction-local database context, composite relationships, asynchronous boundary scoping, and hostile cross-tenant tests. See Tenant context and SaaS release gate.
+
+
+## Add arena staff after bootstrap
+
+After the initial OWNER membership is provisioned, the tenant OWNER/ADMIN can manage staff memberships through the authenticated tenant membership API:
+
+- `GET /api/v1/admin/tenant-memberships` — list members in the current tenant only
+- `POST /api/v1/admin/tenant-memberships` — add an existing account by email
+- `PUT /api/v1/admin/tenant-memberships/{userId}` — assign `ADMIN`, `OPERATOR`, `COACH`, `ORGANIZER`, `SHOPKEEPER` or `CUSTOMER` with status `INVITED`, `ACTIVE`, `SUSPENDED` or `REVOKED`
+- `DELETE /api/v1/admin/tenant-memberships/{userId}` — revoke access without deleting history
+- `GET /api/v1/tenant-memberships/me` — return only the authenticated user's current-tenant membership; active global CUSTOMER accounts are enrolled as CUSTOMER when no membership exists
+- `POST /api/v1/tenant-memberships/me/accept` — let the authenticated invitee accept their current tenant invitation
+
+The user account must already exist and be active. An INVITED status does not send an email automatically; share the sign-in link and have the user call the acceptance endpoint. OWNER cannot be assigned, overwritten or revoked through this endpoint; ownership transfer requires a separately reviewed procedure. An INVITED user can sign in, load their own profile and current membership state, then accept only their own invitation in the current tenant; ACTIVE acceptance is idempotent, while suspended/revoked invitations cannot be accepted. The web app derives admin/operator navigation from the current tenant membership rather than global roles. Tenant administrators cannot use global `/api/v1/admin/users` endpoints while tenant context is active; those remain platform SUPER_ADMIN-only.

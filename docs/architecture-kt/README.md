@@ -209,3 +209,5 @@ echo "Check schema history, health, rollback compatibility, audit and business s
 ## Dedicated tenant bootstrap
 
 Use [DEDICATED_TENANT_PROVISIONING.md](DEDICATED_TENANT_PROVISIONING.md) to provision the first tenant registry row, active subscription and owner membership for customer-hosted or PlayNexa-managed single-tenant installations. It does not enable shared SaaS.
+
+- [Tenant membership administration](TENANT_CONTEXT_AND_SAAS_RELEASE_GATE.md#tenant-membership-administration) — tenant-scoped staff roles and platform user-directory protection.
